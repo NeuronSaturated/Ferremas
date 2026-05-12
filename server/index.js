@@ -59,42 +59,50 @@ const getTokenFromRequest = (req) => {
   return authHeader.slice("Bearer ".length).trim();
 };
 
-const requireUserSession = (req, res, next) => {
+const requireUserSession = async (req, res, next) => {
   const token = getTokenFromRequest(req);
   if (!token) {
     return res.status(401).json({ message: "Sesion requerida." });
   }
 
-  const session = getSession(token);
-  if (!session || session.role !== "client" || !session.userId) {
-    return res.status(401).json({ message: "Sesion invalida." });
-  }
+  try {
+    const session = await getSession(token);
+    if (!session || session.role !== "client" || !session.userId) {
+      return res.status(401).json({ message: "Sesion invalida." });
+    }
 
-  const user = getUserWithOrders(session.userId);
-  if (!user) {
-    return res.status(401).json({ message: "Usuario no encontrado." });
-  }
+    const user = await getUserWithOrders(session.userId);
+    if (!user) {
+      return res.status(401).json({ message: "Usuario no encontrado." });
+    }
 
-  req.sessionToken = token;
-  req.session = session;
-  req.user = user;
-  next();
+    req.sessionToken = token;
+    req.session = session;
+    req.user = user;
+    return next();
+  } catch (error) {
+    return next(error);
+  }
 };
 
-const requireAdminSession = (req, res, next) => {
+const requireAdminSession = async (req, res, next) => {
   const token = getTokenFromRequest(req);
   if (!token) {
     return res.status(401).json({ message: "Sesion de administrador requerida." });
   }
 
-  const session = getSession(token);
-  if (!session || session.role !== "admin") {
-    return res.status(401).json({ message: "Sesion de administrador invalida." });
-  }
+  try {
+    const session = await getSession(token);
+    if (!session || session.role !== "admin") {
+      return res.status(401).json({ message: "Sesion de administrador invalida." });
+    }
 
-  req.sessionToken = token;
-  req.session = session;
-  next();
+    req.sessionToken = token;
+    req.session = session;
+    return next();
+  } catch (error) {
+    return next(error);
+  }
 };
 
 const sanitizeUserResponse = (user, token) => ({
@@ -149,7 +157,7 @@ app.get("/api/health", (_req, res) => {
   });
 });
 
-app.post("/api/auth/signup", (req, res) => {
+app.post("/api/auth/signup", async (req, res) => {
   try {
     const email = String(req.body?.email || "").trim().toLowerCase();
     const password = String(req.body?.password || "");
@@ -166,11 +174,11 @@ app.post("/api/auth/signup", (req, res) => {
       return res.status(400).json({ message: "La contraseña debe tener al menos 6 caracteres." });
     }
 
-    if (getUserByEmail(email)) {
+    if (await getUserByEmail(email)) {
       return res.status(409).json({ message: "Ya existe una cuenta con ese email." });
     }
 
-    const user = createUser({
+    const user = await createUser({
       email,
       passwordHash: hashPassword(password),
       firstName,
@@ -179,26 +187,26 @@ app.post("/api/auth/signup", (req, res) => {
       phone,
     });
 
-    const token = createSession({ userId: user.id, role: "client" });
-    return res.status(201).json(sanitizeUserResponse(getUserWithOrders(user.id), token));
+    const token = await createSession({ userId: user.id, role: "client" });
+    return res.status(201).json(sanitizeUserResponse(await getUserWithOrders(user.id), token));
   } catch (error) {
     console.error("Error registrando usuario:", error);
     return res.status(500).json({ message: "No se pudo crear la cuenta." });
   }
 });
 
-app.post("/api/auth/signin", (req, res) => {
+app.post("/api/auth/signin", async (req, res) => {
   try {
     const email = String(req.body?.email || "").trim().toLowerCase();
     const password = String(req.body?.password || "");
-    const user = getUserByEmail(email);
+    const user = await getUserByEmail(email);
 
     if (!user || !verifyPassword(password, user.passwordHash)) {
       return res.status(401).json({ message: "Email o contraseña incorrectos." });
     }
 
-    const token = createSession({ userId: user.id, role: "client" });
-    return res.json(sanitizeUserResponse(getUserWithOrders(user.id), token));
+    const token = await createSession({ userId: user.id, role: "client" });
+    return res.json(sanitizeUserResponse(await getUserWithOrders(user.id), token));
   } catch (error) {
     console.error("Error iniciando sesion:", error);
     return res.status(500).json({ message: "No se pudo iniciar sesion." });
@@ -209,21 +217,21 @@ app.get("/api/auth/me", requireUserSession, (req, res) => {
   res.json(sanitizeUserResponse(req.user, req.sessionToken));
 });
 
-app.post("/api/auth/signout", requireUserSession, (req, res) => {
-  deleteSession(req.sessionToken);
+app.post("/api/auth/signout", requireUserSession, async (req, res) => {
+  await deleteSession(req.sessionToken);
   res.status(204).send();
 });
 
-app.patch("/api/auth/profile", requireUserSession, (req, res) => {
+app.patch("/api/auth/profile", requireUserSession, async (req, res) => {
   try {
     const nextEmail = String(req.body?.email || req.user.email).trim().toLowerCase();
-    const emailOwner = getUserByEmail(nextEmail);
+    const emailOwner = await getUserByEmail(nextEmail);
 
     if (emailOwner && emailOwner.id !== req.user.id) {
       return res.status(409).json({ message: "Ya existe una cuenta con ese email." });
     }
 
-    const updated = updateUserProfile(req.user.id, {
+    const updated = await updateUserProfile(req.user.id, {
       firstName: String(req.body?.firstName || req.user.firstName).trim(),
       lastName: String(req.body?.lastName || req.user.lastName).trim(),
       email: nextEmail,
@@ -240,10 +248,10 @@ app.patch("/api/auth/profile", requireUserSession, (req, res) => {
   }
 });
 
-app.post("/api/orders/transfer", requireUserSession, (req, res) => {
+app.post("/api/orders/transfer", requireUserSession, async (req, res) => {
   try {
     const payload = normalizeOrderPayload(req.body || {});
-    const order = createTransferOrder({
+    const order = await createTransferOrder({
       userId: req.user.id,
       total: payload.total,
       delivery: payload.delivery,
@@ -269,7 +277,7 @@ app.post("/api/payments/webpay/create", requireUserSession, async (req, res) => 
     const transaction = getWebpayTransaction();
     const response = await transaction.create(orderId, sessionId, payload.total, returnUrl);
 
-    createWebpayOrderDraft({
+    await createWebpayOrderDraft({
       userId: req.user.id,
       orderId,
       total: payload.total,
@@ -303,7 +311,7 @@ app.post("/api/payments/webpay/commit", async (req, res) => {
       return res.status(400).json({ message: "Falta token_ws para confirmar la transaccion." });
     }
 
-    const order = getOrderByWebpayToken(token);
+    const order = await getOrderByWebpayToken(token);
     if (!order) {
       return res.status(404).json({ message: "No existe una orden asociada a ese pago." });
     }
@@ -326,7 +334,7 @@ app.post("/api/payments/webpay/commit", async (req, res) => {
       ? `Webpay Plus - terminada en ${response.card_detail.card_number}`
       : "Webpay Plus (Transbank)";
 
-    const updatedOrder = markWebpayOrderAuthorized({
+    const updatedOrder = await markWebpayOrderAuthorized({
       orderId: order.id,
       paymentLabel,
       authorizationCode: String(response.authorization_code || ""),
@@ -366,7 +374,7 @@ app.all("/api/payments/webpay/return", (req, res) => {
   return res.redirect(successUrl.toString());
 });
 
-app.post("/api/admin/login", (req, res) => {
+app.post("/api/admin/login", async (req, res) => {
   const user = String(req.body?.user || "").trim();
   const pass = String(req.body?.pass || "");
 
@@ -374,21 +382,21 @@ app.post("/api/admin/login", (req, res) => {
     return res.status(401).json({ message: "Usuario o contraseña incorrectos." });
   }
 
-  const token = createSession({ role: "admin" });
+  const token = await createSession({ role: "admin" });
   return res.json({ token });
 });
 
-app.post("/api/admin/logout", requireAdminSession, (req, res) => {
-  deleteSession(req.sessionToken);
+app.post("/api/admin/logout", requireAdminSession, async (req, res) => {
+  await deleteSession(req.sessionToken);
   res.status(204).send();
 });
 
-app.get("/api/admin/orders", requireAdminSession, (_req, res) => {
-  res.json({ orders: getAdminOrders() });
+app.get("/api/admin/orders", requireAdminSession, async (_req, res) => {
+  res.json({ orders: await getAdminOrders() });
 });
 
-app.patch("/api/admin/orders/:id", requireAdminSession, (req, res) => {
-  const order = updateOrderAdminState({
+app.patch("/api/admin/orders/:id", requireAdminSession, async (req, res) => {
+  const order = await updateOrderAdminState({
     orderId: req.params.id,
     status: req.body?.status,
     paymentStatus: req.body?.paymentStatus,
