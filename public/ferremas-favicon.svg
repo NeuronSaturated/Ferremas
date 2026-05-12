@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="FERREMAS">
+  <defs>
+    <linearGradient id="ferremasBg" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0%" stop-color="#fb923c" />
+      <stop offset="100%" stop-color="#ea580c" />
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="14" fill="url(#ferremasBg)" />
+  <path
+    d="M40.3 10.6a7.4 7.4 0 0 0-5.2 2.1l-4 4 11.2 11.2 4-4a7.4 7.4 0 0 0-6-13.3Z"
+    fill="#fff7ed"
+  />
+  <path
+    d="M29.2 18.3 17.4 30.1a6.7 6.7 0 0 0 0 9.4l5.1 5.1a6.7 6.7 0 0 0 9.4 0l11.8-11.8-14.5-14.5Z"
+    fill="#ffedd5"
+  />
+  <path d="M18.4 38.6h11.2v4.1H18.4z" fill="#7c2d12" transform="rotate(-45 24 40.7)" />
+  <circle cx="23.7" cy="37.7" r="2.4" fill="#7c2d12" />
+</svg>
