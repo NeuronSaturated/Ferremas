@@ -451,6 +451,37 @@ app.post("/api/chat", async (req, res) => {
       .normalize("NFD")
       .replace(/[\u0300-\u036f]/g, "");
   const normalizedMessage = normalize(message);
+  const rawTerms = normalizedMessage.split(/[^a-z0-9]+/).filter(Boolean);
+  const hasAny = (words) => words.some((word) => rawTerms.includes(word));
+
+  if (rawTerms.length <= 2 && hasAny(["hola", "buenas", "buenos", "hey"])) {
+    return res.json({
+      reply:
+        "Hola, soy el asistente de FERREMAS. Puedo ayudarte a encontrar productos, comparar precios, revisar stock, medios de pago, retiro y despacho.",
+      products: [],
+      showStock: false,
+    });
+  }
+
+  if (hasAny(["webpay", "transbank", "pago", "pagos", "transferencia", "tarjeta"])) {
+    return res.json({
+      reply:
+        "Puedes pagar con Webpay Plus o dejar el pedido por transferencia bancaria. En Webpay, el pago se confirma automáticamente al volver a FERREMAS.",
+      products: [],
+      showStock: false,
+    });
+  }
+
+  if (hasAny(["despacho", "despachos", "envio", "envios", "retiro", "retirar", "sucursal", "sucursales"])) {
+    return res.json({
+      reply:
+        "Puedes elegir retiro en tienda gratis o despacho a domicilio. Si eliges retiro, seleccionas la sucursal antes de confirmar el pedido.",
+      products: [],
+      showStock: false,
+    });
+  }
+
+  const asksStock = hasAny(["stock", "disponible", "disponibles", "queda", "quedan", "tienen", "tiene", "hay"]);
   const stopwords = new Set([
     "ando",
     "buscando",
@@ -460,11 +491,18 @@ app.post("/api/chat", async (req, res) => {
     "compro",
     "cotizar",
     "cotizo",
+    "como",
+    "consultar",
+    "consulta",
     "de",
     "del",
     "el",
     "en",
     "estoy",
+    "este",
+    "esta",
+    "funciona",
+    "funcionan",
     "hola",
     "la",
     "las",
@@ -472,23 +510,45 @@ app.post("/api/chat", async (req, res) => {
     "los",
     "me",
     "necesito",
+    "saber",
     "para",
     "por",
     "quiero",
     "un",
     "una",
+    "va",
+    "ver",
     "y",
   ]);
-  const terms = normalizedMessage
-    .split(/[^a-z0-9]+/)
-    .filter((term) => term.length >= 3 && !stopwords.has(term));
+  const terms = rawTerms.filter((term) => term.length >= 3 && !stopwords.has(term));
 
   const matches = products
     .map((product) => {
-      const searchable = normalize(
-        `${product.name} ${product.brand} ${product.category} ${product.sku} ${product.description}`
+      const tokenize = (value) => normalize(value).split(/[^a-z0-9]+/).filter(Boolean);
+      const nameTerms = tokenize(product.name);
+      const brandTerms = tokenize(product.brand);
+      const categoryTerms = tokenize(product.category);
+      const skuTerms = tokenize(product.sku);
+      const descriptionTerms = tokenize(product.description);
+      const hasTerm = (tokens, term) => {
+        const tokenSet = new Set(tokens);
+        return (
+          tokenSet.has(term) ||
+          tokenSet.has(term.replace(/s$/, "")) ||
+          tokens.some((candidate) => candidate.startsWith(term) && term.length >= 5)
+        );
+      };
+      const score = terms.reduce(
+        (sum, term) =>
+          sum +
+          (hasTerm(nameTerms, term) ? 5 : 0) +
+          (nameTerms[0] === term || nameTerms[0] === term.replace(/s$/, "") ? 4 : 0) +
+          (hasTerm(categoryTerms, term) ? 3 : 0) +
+          (hasTerm(brandTerms, term) ? 2 : 0) +
+          (hasTerm(skuTerms, term) ? 2 : 0) +
+          (hasTerm(descriptionTerms, term) ? 1 : 0),
+        0
       );
-      const score = terms.reduce((sum, term) => sum + (searchable.includes(term) ? 1 : 0), 0);
       return { product, score };
     })
     .filter(({ score }) => score > 0)
@@ -498,25 +558,19 @@ app.post("/api/chat", async (req, res) => {
 
   if (matches.length > 0) {
     const first = matches[0];
+    const price = new Intl.NumberFormat("es-CL", {
+      style: "currency",
+      currency: "CLP",
+      maximumFractionDigits: 0,
+    }).format(first.price);
+    const stockText = first.stock > 0 ? `Sí, tenemos stock disponible: ${first.stock} unidad(es).` : "Por ahora aparece sin stock disponible.";
+
     return res.json({
-      reply: `Encontré ${matches.length} opción(es). La más cercana es ${first.name}, marca ${first.brand}, con stock ${first.stock} y precio ${new Intl.NumberFormat("es-CL", { style: "currency", currency: "CLP", maximumFractionDigits: 0 }).format(first.price)}.`,
+      reply: asksStock
+        ? `${stockText} La opción más cercana es ${first.name}, marca ${first.brand}, a ${price}.`
+        : `Encontré ${matches.length} opción(es). La más cercana es ${first.name}, marca ${first.brand}, a ${price}.`,
       products: matches,
-    });
-  }
-
-  if (normalizedMessage.includes("webpay") || normalizedMessage.includes("transbank") || normalizedMessage.includes("pago")) {
-    return res.json({
-      reply:
-        "Puedes pagar con Webpay Plus usando las tarjetas de prueba de Transbank en integración, o dejar el pedido por transferencia para validación manual.",
-      products: [],
-    });
-  }
-
-  if (normalizedMessage.includes("despacho") || normalizedMessage.includes("retiro") || normalizedMessage.includes("sucursal")) {
-    return res.json({
-      reply:
-        "Puedes elegir retiro en tienda gratis o despacho a domicilio. Para retiro, selecciona la sucursal antes de confirmar el pedido.",
-      products: [],
+      showStock: asksStock,
     });
   }
 
@@ -524,6 +578,7 @@ app.post("/api/chat", async (req, res) => {
     reply:
       "No encontré un producto exacto. Prueba con una palabra clave como taladro, martillo, pintura, cable, casco o cemento.",
     products: [],
+    showStock: false,
   });
 });
 

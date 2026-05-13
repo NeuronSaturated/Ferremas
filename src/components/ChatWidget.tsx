@@ -1,4 +1,4 @@
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useRef, useState } from "react";
 import { MessageCircle, Send, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -11,6 +11,7 @@ type ChatMessage = {
   role: "user" | "assistant";
   text: string;
   products?: Product[];
+  showStock?: boolean;
 };
 
 const hydrateProducts = async (matches: Array<Omit<Product, "image"> & { imageKey: string }>) => {
@@ -23,12 +24,19 @@ const ChatWidget = () => {
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
+  const bottomRef = useRef<HTMLDivElement>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       role: "assistant",
       text: "Hola, soy el asistente FERREMAS. Pregúntame por productos, pagos, retiro o despacho.",
     },
   ]);
+
+  useEffect(() => {
+    if (open) {
+      bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+    }
+  }, [loading, messages, open]);
 
   const sendMessage = async (event: FormEvent) => {
     event.preventDefault();
@@ -43,12 +51,16 @@ const ChatWidget = () => {
       const response = await apiFetch<{
         reply: string;
         products: Array<Omit<Product, "image"> & { imageKey: string }>;
+        showStock?: boolean;
       }>("/api/chat", {
         method: "POST",
         body: JSON.stringify({ message: text }),
       });
       const products = await hydrateProducts(response.products);
-      setMessages((prev) => [...prev, { role: "assistant", text: response.reply, products }]);
+      setMessages((prev) => [
+        ...prev,
+        { role: "assistant", text: response.reply, products, showStock: Boolean(response.showStock) },
+      ]);
     } catch (error) {
       setMessages((prev) => [
         ...prev,
@@ -100,7 +112,9 @@ const ChatWidget = () => {
                         <span className="min-w-0 flex-1">
                           <span className="block truncate font-medium">{product.name}</span>
                           <span className="block text-xs text-muted-foreground">
-                            {formatCLP(product.price)} · Stock {product.stock}
+                            {message.showStock
+                              ? `${formatCLP(product.price)} · Stock ${product.stock}`
+                              : formatCLP(product.price)}
                           </span>
                         </span>
                       </Link>
@@ -110,6 +124,7 @@ const ChatWidget = () => {
               </div>
             ))}
             {loading && <p className="text-sm text-muted-foreground">Escribiendo respuesta...</p>}
+            <div ref={bottomRef} />
           </div>
 
           <form onSubmit={sendMessage} className="flex gap-2 border-t border-border p-3">
