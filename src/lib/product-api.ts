@@ -10,9 +10,11 @@ const fallbackById = new Map(fallbackProducts.map((product) => [product.id, prod
 
 const hydrateProduct = (product: ProductsResponse["products"][number]): Product => ({
   ...product,
-  image: product.imageKey?.startsWith("http")
+  image: product.imageKey?.startsWith("http") || product.imageKey?.startsWith("/")
     ? product.imageKey
-    : fallbackById.get(product.id)?.image ?? fallbackProducts[0].image,
+    : product.imageKey
+      ? `/catalog/${product.imageKey}`
+      : fallbackById.get(product.id)?.image ?? fallbackProducts[0].image,
 });
 
 export const fetchProducts = async () => {

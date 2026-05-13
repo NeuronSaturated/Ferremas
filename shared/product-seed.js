@@ -1,5 +1,3 @@
-const commons = (file) => `https://commons.wikimedia.org/wiki/Special:FilePath/${encodeURIComponent(file)}`;
-
 export const productSeed = [
   // Herramientas
   { name: "Taladro Percutor Inalámbrico 18V", brand: "Bosch", category: "Herramientas", price: 89990, stock: 24, imageKey: "product-drill.jpg", description: "Taladro percutor profesional de 18V con batería de litio, ideal para trabajos pesados en madera, metal y concreto." },
@@ -66,43 +64,43 @@ export const productSeed = [
   { name: "Botiquín Primeros Auxilios", brand: "FERREMAS", category: "Seguridad", price: 14990, stock: 60, imageKey: "product-firstaid.jpg", description: "Botiquín completo para obras y oficinas, 50 elementos." },
 
   // Terminaciones y cerámicos
-  { name: "Fragüe Blanco 2kg", brand: "Bekron", category: "Construcción", price: 3990, stock: 90, imageKey: commons("Effect of Grout Color.png"), description: "Fragüe fino para juntas de cerámica, porcelanato y mosaicos en muros o pisos interiores." },
-  { name: "Fragüe Gris 5kg", brand: "Topex", category: "Construcción", price: 7990, stock: 74, imageKey: commons("Effect of Grout Color.png"), description: "Fragüe cementicio gris para juntas de cerámicos y porcelanatos en zonas de alto tránsito." },
-  { name: "Adhesivo Cerámico AC 25kg", brand: "Bekron", category: "Construcción", price: 6990, stock: 130, imageKey: commons("Portland Cement Bags.jpg"), description: "Adhesivo en polvo para instalación de cerámicas en pisos y muros interiores." },
-  { name: "Adhesivo Porcelanato DA 25kg", brand: "Topex", category: "Construcción", price: 9990, stock: 88, imageKey: commons("Cement bags.jpg"), description: "Adhesivo de alta adherencia para porcelanatos, piedras y revestimientos de baja absorción." },
-  { name: "Cerámica Muro Blanca 25x40 (caja)", brand: "Cordillera", category: "Construcción", price: 11990, stock: 72, imageKey: commons("Ceramic wall tile.jpg"), description: "Cerámica blanca brillante para baños y cocinas, fácil limpieza y terminación clásica." },
-  { name: "Cerámica Piso Gris 45x45 (caja)", brand: "Cordillera", category: "Construcción", price: 13990, stock: 65, imageKey: commons("Ceramic wall tile.jpg"), description: "Cerámica esmaltada gris para piso interior, resistente y de mantenimiento simple." },
-  { name: "Porcelanato Beige 60x60 (caja)", brand: "Atika", category: "Construcción", price: 22990, stock: 48, imageKey: commons("Ceramic wall tile.jpg"), description: "Porcelanato rectificado de acabado mate para espacios interiores modernos." },
-  { name: "Listel Cerámico Decorativo 8x30", brand: "Cordillera", category: "Construcción", price: 2490, stock: 160, imageKey: commons("Ceramic wall tile.jpg"), description: "Listel decorativo para terminaciones en baños, cocinas y muros revestidos." },
-  { name: "Crucetas Separadoras 3mm (100un)", brand: "FERREMAS", category: "Construcción", price: 1490, stock: 220, imageKey: commons("Effect of Grout Color.png"), description: "Separadores plásticos para mantener juntas parejas en instalación de cerámicos." },
-  { name: "Nivelador de Porcelanato (50un)", brand: "FERREMAS", category: "Construcción", price: 6990, stock: 95, imageKey: commons("Ceramic wall tile.jpg"), description: "Sistema de nivelación para porcelanatos y cerámicas de gran formato." },
+  { name: "Fragüe Blanco 2kg", brand: "Bekron", category: "Construcción", price: 3990, stock: 90, imageKey: "/catalog/grout-color.jpg", description: "Fragüe fino para juntas de cerámica, porcelanato y mosaicos en muros o pisos interiores." },
+  { name: "Fragüe Gris 5kg", brand: "Topex", category: "Construcción", price: 7990, stock: 74, imageKey: "/catalog/grout-color.jpg", description: "Fragüe cementicio gris para juntas de cerámicos y porcelanatos en zonas de alto tránsito." },
+  { name: "Adhesivo Cerámico AC 25kg", brand: "Bekron", category: "Construcción", price: 6990, stock: 130, imageKey: "/catalog/adhesive-cement-bags.jpg", description: "Adhesivo en polvo para instalación de cerámicas en pisos y muros interiores." },
+  { name: "Adhesivo Porcelanato DA 25kg", brand: "Topex", category: "Construcción", price: 9990, stock: 88, imageKey: "/catalog/adhesive-cement-bags.jpg", description: "Adhesivo de alta adherencia para porcelanatos, piedras y revestimientos de baja absorción." },
+  { name: "Cerámica Muro Blanca 25x40 (caja)", brand: "Cordillera", category: "Construcción", price: 11990, stock: 72, imageKey: "/catalog/ceramic-tiles.jpg", description: "Cerámica blanca brillante para baños y cocinas, fácil limpieza y terminación clásica." },
+  { name: "Cerámica Piso Gris 45x45 (caja)", brand: "Cordillera", category: "Construcción", price: 13990, stock: 65, imageKey: "/catalog/ceramic-tiles.jpg", description: "Cerámica esmaltada gris para piso interior, resistente y de mantenimiento simple." },
+  { name: "Porcelanato Beige 60x60 (caja)", brand: "Atika", category: "Construcción", price: 22990, stock: 48, imageKey: "/catalog/ceramic-tiles.jpg", description: "Porcelanato rectificado de acabado mate para espacios interiores modernos." },
+  { name: "Listel Cerámico Decorativo 8x30", brand: "Cordillera", category: "Construcción", price: 2490, stock: 160, imageKey: "/catalog/ceramic-tiles.jpg", description: "Listel decorativo para terminaciones en baños, cocinas y muros revestidos." },
+  { name: "Crucetas Separadoras 3mm (100un)", brand: "FERREMAS", category: "Construcción", price: 1490, stock: 220, imageKey: "/catalog/grout-color.jpg", description: "Separadores plásticos para mantener juntas parejas en instalación de cerámicos." },
+  { name: "Nivelador de Porcelanato (50un)", brand: "FERREMAS", category: "Construcción", price: 6990, stock: 95, imageKey: "/catalog/ceramic-tiles.jpg", description: "Sistema de nivelación para porcelanatos y cerámicas de gran formato." },
 
   // Gasfitería y baño
-  { name: "Tubería PVC Sanitaria 110mm x 3m", brand: "Tigre", category: "Construcción", price: 11990, stock: 58, imageKey: commons("PVC-U Druckrohr Transparent .jpg"), description: "Tubería sanitaria de PVC para descarga de aguas servidas en instalaciones domiciliarias." },
-  { name: "Codo PVC Sanitario 110mm 90°", brand: "Tigre", category: "Construcción", price: 2490, stock: 140, imageKey: commons("1 inch PVC Valve and pipe-IMG 1061.jpg"), description: "Fitting sanitario de PVC para cambios de dirección en redes de descarga." },
-  { name: "Llave de Paso Bola 1/2\"", brand: "Vinilit", category: "Construcción", price: 4990, stock: 110, imageKey: commons("1 inch PVC Valve and pipe-IMG 1061.jpg"), description: "Llave de paso metálica para corte de agua en instalaciones domiciliarias." },
-  { name: "Flexible Agua HI-HI 1/2\" 40cm", brand: "Nibsa", category: "Construcción", price: 2990, stock: 180, imageKey: commons("1 inch PVC Valve and pipe-IMG 1061.jpg"), description: "Flexible trenzado para conexión de lavamanos, WC y artefactos sanitarios." },
-  { name: "Sifón Lavaplatos Universal", brand: "Vinilit", category: "Construcción", price: 5990, stock: 75, imageKey: commons("1 inch PVC Valve and pipe-IMG 1061.jpg"), description: "Sifón plástico universal con salida flexible para lavaplatos y lavaderos." },
-  { name: "Silicona Baño Antihongos 280ml", brand: "Sika", category: "Pinturas", price: 4990, stock: 135, imageKey: commons("Applying glue to the tube.jpg"), description: "Sellador de silicona sanitaria con protección antihongos para baños y cocinas." },
+  { name: "Tubería PVC Sanitaria 110mm x 3m", brand: "Tigre", category: "Construcción", price: 11990, stock: 58, imageKey: "/catalog/pvc-sanitary-pipe.jpg", description: "Tubería sanitaria de PVC para descarga de aguas servidas en instalaciones domiciliarias." },
+  { name: "Codo PVC Sanitario 110mm 90°", brand: "Tigre", category: "Construcción", price: 2490, stock: 140, imageKey: "/catalog/pvc-sanitary-pipe.jpg", description: "Fitting sanitario de PVC para cambios de dirección en redes de descarga." },
+  { name: "Llave de Paso Bola 1/2\"", brand: "Vinilit", category: "Construcción", price: 4990, stock: 110, imageKey: "/catalog/pvc-sanitary-pipe.jpg", description: "Llave de paso metálica para corte de agua en instalaciones domiciliarias." },
+  { name: "Flexible Agua HI-HI 1/2\" 40cm", brand: "Nibsa", category: "Construcción", price: 2990, stock: 180, imageKey: "/catalog/pvc-sanitary-pipe.jpg", description: "Flexible trenzado para conexión de lavamanos, WC y artefactos sanitarios." },
+  { name: "Sifón Lavaplatos Universal", brand: "Vinilit", category: "Construcción", price: 5990, stock: 75, imageKey: "/catalog/pvc-sanitary-pipe.jpg", description: "Sifón plástico universal con salida flexible para lavaplatos y lavaderos." },
+  { name: "Silicona Baño Antihongos 280ml", brand: "Sika", category: "Pinturas", price: 4990, stock: 135, imageKey: "/catalog/silicone-sealant.jpg", description: "Sellador de silicona sanitaria con protección antihongos para baños y cocinas." },
 
   // Maderas, tableros y fijaciones
-  { name: "Terciado Estructural 18mm 1.22x2.44m", brand: "Arauco", category: "Construcción", price: 39990, stock: 34, imageKey: commons("Plywood.jpg"), description: "Tablero terciado estructural para techumbres, pisos, moldajes y proyectos de carpintería." },
-  { name: "MDF 15mm 1.52x2.44m", brand: "Masisa", category: "Construcción", price: 29990, stock: 42, imageKey: commons("Wood 042 plywood.jpg"), description: "Tablero MDF para muebles, repisas y terminaciones interiores pintables." },
-  { name: "Pino Cepillado 2x3\" 3.2m", brand: "FERREMAS", category: "Construcción", price: 4990, stock: 150, imageKey: commons("Plywood.jpg"), description: "Madera dimensionada cepillada para estructuras livianas, tabiquería y proyectos menores." },
+  { name: "Terciado Estructural 18mm 1.22x2.44m", brand: "Arauco", category: "Construcción", price: 39990, stock: 34, imageKey: "/catalog/plywood-board.jpg", description: "Tablero terciado estructural para techumbres, pisos, moldajes y proyectos de carpintería." },
+  { name: "MDF 15mm 1.52x2.44m", brand: "Masisa", category: "Construcción", price: 29990, stock: 42, imageKey: "/catalog/plywood-board.jpg", description: "Tablero MDF para muebles, repisas y terminaciones interiores pintables." },
+  { name: "Pino Cepillado 2x3\" 3.2m", brand: "FERREMAS", category: "Construcción", price: 4990, stock: 150, imageKey: "/catalog/plywood-board.jpg", description: "Madera dimensionada cepillada para estructuras livianas, tabiquería y proyectos menores." },
   { name: "Tarugo Plástico 8mm + Tornillo (50un)", brand: "Fischer", category: "Construcción", price: 3490, stock: 190, imageKey: "product-screws.jpg", description: "Kit de tarugos y tornillos para fijaciones en muros de concreto, ladrillo y albañilería." },
   { name: "Perno Hexagonal 3/8\" x 2\" (10un)", brand: "Stanley", category: "Construcción", price: 2990, stock: 120, imageKey: "product-screws.jpg", description: "Pernos zincados con tuerca para uniones metálicas y trabajos de montaje." },
   { name: "Escuadra Reforzada 3\" Zincada", brand: "FERREMAS", category: "Construcción", price: 1290, stock: 260, imageKey: "product-screws.jpg", description: "Escuadra metálica para refuerzo de muebles, repisas y estructuras livianas." },
 
   // Jardín y exterior
-  { name: "Manguera Jardín 1/2\" 20m", brand: "Tramontina", category: "Herramientas", price: 14990, stock: 55, imageKey: commons("Garden hose.jpg"), description: "Manguera flexible para riego doméstico con buena resistencia al uso exterior." },
-  { name: "Pala Punta Huevo Mango Fibra", brand: "Tramontina", category: "Herramientas", price: 12990, stock: 46, imageKey: commons("Shovel (PSF).png"), description: "Pala para excavación, jardinería y movimiento de tierra en obras menores." },
-  { name: "Carretilla 90 Litros Reforzada", brand: "FERREMAS", category: "Herramientas", price: 59990, stock: 18, imageKey: commons("Wheelbarrow .jpg"), description: "Carretilla metálica reforzada para traslado de áridos, escombros y materiales de construcción." },
-  { name: "Guadaña Eléctrica 1000W", brand: "Bosch", category: "Herramientas", price: 69990, stock: 16, imageKey: commons("Brushcutter and line trimmer tools.jpg"), description: "Herramienta eléctrica para corte de pasto y mantención de jardines residenciales." },
+  { name: "Manguera Jardín 1/2\" 20m", brand: "Tramontina", category: "Herramientas", price: 14990, stock: 55, imageKey: "/catalog/garden-hose.jpg", description: "Manguera flexible para riego doméstico con buena resistencia al uso exterior." },
+  { name: "Pala Punta Huevo Mango Fibra", brand: "Tramontina", category: "Herramientas", price: 12990, stock: 46, imageKey: "/catalog/wheelbarrow.jpg", description: "Pala para excavación, jardinería y movimiento de tierra en obras menores." },
+  { name: "Carretilla 90 Litros Reforzada", brand: "FERREMAS", category: "Herramientas", price: 59990, stock: 18, imageKey: "/catalog/wheelbarrow.jpg", description: "Carretilla metálica reforzada para traslado de áridos, escombros y materiales de construcción." },
+  { name: "Guadaña Eléctrica 1000W", brand: "Bosch", category: "Herramientas", price: 69990, stock: 16, imageKey: "/catalog/brushcutter.jpg", description: "Herramienta eléctrica para corte de pasto y mantención de jardines residenciales." },
 
   // Electricidad ampliada
   { name: "Canaleta PVC 20x10mm 2m", brand: "DuraLine", category: "Eléctrico", price: 1990, stock: 210, imageKey: "product-cable.jpg", description: "Canaleta plástica para ordenar y proteger cableado eléctrico o de datos en superficie." },
   { name: "Caja Derivación Embutida 100x100", brand: "Bticino", category: "Eléctrico", price: 2490, stock: 150, imageKey: "product-panel.jpg", description: "Caja eléctrica para derivaciones y conexiones interiores en muros." },
-  { name: "Cinta Aisladora Negra 18mm", brand: "3M", category: "Eléctrico", price: 1490, stock: 260, imageKey: commons("Ca 1970 roll of polyethylene electrical insulating tape by Norgesplaster AS Mosby Norway.jpg"), description: "Cinta aislante de PVC para protección y terminación de conexiones eléctricas." },
+  { name: "Cinta Aisladora Negra 18mm", brand: "3M", category: "Eléctrico", price: 1490, stock: 260, imageKey: "/catalog/electrical-tape.jpg", description: "Cinta aislante de PVC para protección y terminación de conexiones eléctricas." },
   { name: "Timbre Inalámbrico 32 Tonos", brand: "FERREMAS", category: "Eléctrico", price: 12990, stock: 35, imageKey: "product-switch.jpg", description: "Timbre inalámbrico para hogar u oficina con receptor enchufable y múltiples melodías." },
 
   // Pinturas y terminaciones ampliadas
