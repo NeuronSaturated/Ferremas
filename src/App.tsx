@@ -12,7 +12,7 @@ import Home from "./pages/Home";
 import Catalog from "./pages/Catalog";
 import ProductDetail from "./pages/ProductDetail";
 import Cart from "./pages/Cart";
-import Branches from "./pages/Branches";
+import Branches, { BranchDetail } from "./pages/Branches";
 import Panel from "./pages/Panel";
 import AdminLogin from "./pages/AdminLogin";
 import Auth from "./pages/Auth";
@@ -36,6 +36,7 @@ const App = () => (
                 <Route path="/catalogo" element={<Catalog />} />
                 <Route path="/producto/:id" element={<ProductDetail />} />
                 <Route path="/sucursales" element={<Branches />} />
+                <Route path="/sucursales/:slug" element={<BranchDetail />} />
                 <Route path="/auth" element={<Auth />} />
                 <Route path="/admin" element={<AdminLogin />} />
                 <Route element={<ClientRoute />}>

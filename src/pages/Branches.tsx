@@ -1,8 +1,8 @@
-import { useMemo, useState } from "react";
+import { Link, Navigate, useParams } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Clock, ExternalLink, MapPin, Navigation, Phone, Warehouse } from "lucide-react";
+import { ArrowLeft, Clock, ExternalLink, Mail, MapPin, Navigation, Phone, Warehouse } from "lucide-react";
 import santiagoCentro from "@/assets/branch-santiago-centro.jpg";
 import maipu from "@/assets/branch-maipu.jpg";
 import providencia from "@/assets/branch-providencia.jpg";
@@ -13,6 +13,7 @@ import laserena from "@/assets/branch-laserena.jpg";
 
 const branches = [
   {
+    slug: "santiago-centro",
     name: "Santiago Centro",
     address: "Av. Libertador Bernardo O'Higgins 1234, Santiago, Chile",
     phone: "+56 2 2345 6789",
@@ -25,6 +26,7 @@ const branches = [
     note: "Sucursal principal para compras de alto volumen, herramientas electricas y materiales de obra.",
   },
   {
+    slug: "maipu",
     name: "Maipu",
     address: "Av. Pajaritos 5678, Maipu, Chile",
     phone: "+56 2 2456 7891",
@@ -37,6 +39,7 @@ const branches = [
     note: "Buena opcion para retiro rapido de pinturas, fijaciones, gasfiteria y herramientas de uso domestico.",
   },
   {
+    slug: "providencia",
     name: "Providencia",
     address: "Av. Providencia 2010, Providencia, Chile",
     phone: "+56 2 2567 8901",
@@ -49,6 +52,7 @@ const branches = [
     note: "Pensada para compras rapidas, reposicion de insumos y asesoria en proyectos de mantencion.",
   },
   {
+    slug: "nunoa",
     name: "Nunoa",
     address: "Av. Irarrazaval 3456, Nunoa, Chile",
     phone: "+56 2 2678 9012",
@@ -61,6 +65,7 @@ const branches = [
     note: "Foco en terminaciones, banos, cocinas y materiales para remodelacion de departamentos.",
   },
   {
+    slug: "vina-del-mar",
     name: "Vina del Mar",
     address: "Av. Libertad 890, Vina del Mar, Chile",
     phone: "+56 32 234 5678",
@@ -73,6 +78,7 @@ const branches = [
     note: "Atiende pedidos para Vina del Mar, Valparaiso y comunas cercanas con despacho coordinado.",
   },
   {
+    slug: "concepcion",
     name: "Concepcion",
     address: "O'Higgins 654, Concepcion, Chile",
     phone: "+56 41 222 3344",
@@ -85,6 +91,7 @@ const branches = [
     note: "Sucursal orientada a constructoras, maestros y compras planificadas para obra.",
   },
   {
+    slug: "la-serena",
     name: "La Serena",
     address: "Av. Francisco de Aguirre 321, La Serena, Chile",
     phone: "+56 51 221 1122",
@@ -98,96 +105,163 @@ const branches = [
   },
 ];
 
-const Branches = () => {
-  const [selectedBranchName, setSelectedBranchName] = useState(branches[0].name);
-  const selectedBranch = useMemo(
-    () => branches.find((branch) => branch.name === selectedBranchName) ?? branches[0],
-    [selectedBranchName]
-  );
-  const encodedAddress = encodeURIComponent(selectedBranch.address);
-  const mapsUrl = `https://www.google.com/maps/search/?api=1&query=${encodedAddress}`;
-  const embedUrl = `https://www.google.com/maps?q=${encodedAddress}&output=embed`;
+const getMapsUrls = (address: string) => {
+  const encodedAddress = encodeURIComponent(address);
+
+  return {
+    route: `https://www.google.com/maps/search/?api=1&query=${encodedAddress}`,
+    embed: `https://www.google.com/maps?q=${encodedAddress}&output=embed`,
+  };
+};
+
+const Branches = () => (
+  <section className="container py-12">
+    <header className="max-w-2xl">
+      <h1 className="text-4xl font-extrabold">Sucursales FERREMAS</h1>
+      <p className="mt-3 text-muted-foreground">
+        4 sucursales en la Region Metropolitana y 3 en regiones, con retiro en tienda, soporte de venta y despacho
+        programado.
+      </p>
+    </header>
+
+    <div className="mt-10 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+      {branches.map((branch) => (
+        <Card key={branch.slug} className="overflow-hidden transition-all hover:-translate-y-1 hover:shadow-lg">
+          <Link to={`/sucursales/${branch.slug}`} className="block h-full">
+            <div className="aspect-[16/10] overflow-hidden bg-muted">
+              <img
+                src={branch.image}
+                alt={`Sucursal FERREMAS ${branch.name}`}
+                loading="lazy"
+                decoding="async"
+                width={1024}
+                height={640}
+                className="h-full w-full object-cover transition-transform duration-500 hover:scale-105"
+              />
+            </div>
+            <div className="p-6">
+              <div className="flex items-start justify-between gap-3">
+                <h2 className="text-lg font-bold">{branch.name}</h2>
+                <span className="rounded-full bg-secondary/10 px-2 py-0.5 text-xs font-medium text-secondary">
+                  {branch.region}
+                </span>
+              </div>
+              <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
+                <li className="flex items-start gap-2">
+                  <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                  {branch.address}
+                </li>
+                <li className="flex items-start gap-2">
+                  <Phone className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                  {branch.phone}
+                </li>
+                <li className="flex items-start gap-2">
+                  <Clock className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                  {branch.hours}
+                </li>
+              </ul>
+              <span className="mt-5 inline-flex text-sm font-semibold text-primary">Ver informacion y mapa</span>
+            </div>
+          </Link>
+        </Card>
+      ))}
+    </div>
+  </section>
+);
+
+export const BranchDetail = () => {
+  const { slug } = useParams();
+  const branch = branches.find((item) => item.slug === slug);
+
+  if (!branch) {
+    return <Navigate to="/sucursales" replace />;
+  }
+
+  const mapsUrl = getMapsUrls(branch.address);
 
   return (
-    <section className="container py-12">
-      <header className="max-w-2xl">
-        <h1 className="text-4xl font-extrabold">Sucursales FERREMAS</h1>
-        <p className="mt-3 text-muted-foreground">
-          4 sucursales en la Region Metropolitana y 3 en regiones, con retiro en tienda, soporte de venta y despacho
-          programado.
-        </p>
-      </header>
+    <section className="container py-10">
+      <Button asChild variant="ghost" className="mb-6 px-0 text-muted-foreground hover:text-foreground">
+        <Link to="/sucursales">
+          <ArrowLeft className="mr-2 h-4 w-4" />
+          Volver a sucursales
+        </Link>
+      </Button>
 
-      <div className="mt-10 grid gap-6 lg:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)]">
-        <Card className="overflow-hidden">
-          <div className="aspect-[16/10] overflow-hidden bg-muted">
+      <div className="grid gap-8 lg:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)]">
+        <article className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
+          <div className="aspect-[16/9] overflow-hidden bg-muted">
             <img
-              src={selectedBranch.image}
-              alt={`Sucursal FERREMAS ${selectedBranch.name}`}
+              src={branch.image}
+              alt={`Sucursal FERREMAS ${branch.name}`}
               width={1024}
               height={640}
               className="h-full w-full object-cover"
             />
           </div>
           <div className="p-6">
-            <div className="flex flex-wrap items-start justify-between gap-3">
-              <div>
-                <Badge className="bg-secondary text-secondary-foreground">{selectedBranch.region}</Badge>
-                <h2 className="mt-3 text-2xl font-extrabold">{selectedBranch.name}</h2>
-                <p className="mt-2 text-sm text-muted-foreground">{selectedBranch.note}</p>
-              </div>
-              <Button asChild variant="outline" size="sm">
-                <a href={mapsUrl} target="_blank" rel="noreferrer">
+            <Badge className="bg-secondary text-secondary-foreground">{branch.region}</Badge>
+            <h1 className="mt-3 text-4xl font-extrabold">{branch.name}</h1>
+            <p className="mt-3 text-muted-foreground">{branch.note}</p>
+
+            <div className="mt-6">
+              <Button asChild>
+                <a href={mapsUrl.route} target="_blank" rel="noreferrer">
                   <ExternalLink className="mr-2 h-4 w-4" />
-                  Ver ruta
+                  Abrir ruta en Google Maps
                 </a>
               </Button>
             </div>
 
-            <dl className="mt-6 grid gap-4 text-sm sm:grid-cols-2">
+            <dl className="mt-8 grid gap-5 text-sm sm:grid-cols-2">
               <div className="flex gap-3">
                 <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
                 <div>
                   <dt className="font-semibold">Direccion</dt>
-                  <dd className="text-muted-foreground">{selectedBranch.address}</dd>
+                  <dd className="text-muted-foreground">{branch.address}</dd>
                 </div>
               </div>
               <div className="flex gap-3">
                 <Phone className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
                 <div>
                   <dt className="font-semibold">Telefono</dt>
-                  <dd className="text-muted-foreground">{selectedBranch.phone}</dd>
+                  <dd className="text-muted-foreground">{branch.phone}</dd>
                 </div>
               </div>
               <div className="flex gap-3">
                 <Clock className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
                 <div>
                   <dt className="font-semibold">Horario</dt>
-                  <dd className="text-muted-foreground">{selectedBranch.hours}</dd>
+                  <dd className="text-muted-foreground">{branch.hours}</dd>
                 </div>
               </div>
               <div className="flex gap-3">
                 <Warehouse className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
                 <div>
                   <dt className="font-semibold">Encargado</dt>
-                  <dd className="text-muted-foreground">
-                    {selectedBranch.manager} - {selectedBranch.email}
-                  </dd>
+                  <dd className="text-muted-foreground">{branch.manager}</dd>
+                </div>
+              </div>
+              <div className="flex gap-3 sm:col-span-2">
+                <Mail className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                <div>
+                  <dt className="font-semibold">Correo</dt>
+                  <dd className="text-muted-foreground">{branch.email}</dd>
                 </div>
               </div>
             </dl>
 
-            <div className="mt-6 flex flex-wrap gap-2">
-              {selectedBranch.services.map((service) => (
+            <div className="mt-7 flex flex-wrap gap-2">
+              {branch.services.map((service) => (
                 <span key={service} className="rounded-full border border-border px-3 py-1 text-xs font-medium">
                   {service}
                 </span>
               ))}
             </div>
           </div>
-        </Card>
+        </article>
 
-        <div className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
+        <aside className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
           <div className="flex items-center gap-3 border-b border-border px-5 py-4">
             <Navigation className="h-5 w-5 text-primary" />
             <div>
@@ -196,72 +270,13 @@ const Branches = () => {
             </div>
           </div>
           <iframe
-            title={`Mapa sucursal FERREMAS ${selectedBranch.name}`}
-            src={embedUrl}
+            title={`Mapa sucursal FERREMAS ${branch.name}`}
+            src={mapsUrl.embed}
             loading="lazy"
             referrerPolicy="no-referrer-when-downgrade"
-            className="h-[440px] w-full border-0"
+            className="h-[560px] w-full border-0"
           />
-        </div>
-      </div>
-
-      <div className="mt-10 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-        {branches.map((branch) => {
-          const isSelected = branch.name === selectedBranch.name;
-
-          return (
-            <Card
-              key={branch.name}
-              className={`overflow-hidden transition-all hover:-translate-y-1 hover:shadow-lg ${
-                isSelected ? "ring-2 ring-primary" : ""
-              }`}
-            >
-              <button
-                type="button"
-                onClick={() => setSelectedBranchName(branch.name)}
-                className="block h-full w-full text-left"
-                aria-pressed={isSelected}
-              >
-                <div className="aspect-[16/10] overflow-hidden bg-muted">
-                  <img
-                    src={branch.image}
-                    alt={`Sucursal FERREMAS ${branch.name}`}
-                    loading="lazy"
-                    decoding="async"
-                    width={1024}
-                    height={640}
-                    className="h-full w-full object-cover transition-transform duration-500 hover:scale-105"
-                  />
-                </div>
-                <div className="p-6">
-                  <div className="flex items-start justify-between gap-3">
-                    <h3 className="text-lg font-bold">{branch.name}</h3>
-                    <span className="rounded-full bg-secondary/10 px-2 py-0.5 text-xs font-medium text-secondary">
-                      {branch.region}
-                    </span>
-                  </div>
-                  <ul className="mt-4 space-y-2 text-sm text-muted-foreground">
-                    <li className="flex items-start gap-2">
-                      <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-                      {branch.address}
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <Phone className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-                      {branch.phone}
-                    </li>
-                    <li className="flex items-start gap-2">
-                      <Clock className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-                      {branch.hours}
-                    </li>
-                  </ul>
-                  <span className="mt-5 inline-flex text-sm font-semibold text-primary">
-                    {isSelected ? "Sucursal seleccionada" : "Ver informacion y mapa"}
-                  </span>
-                </div>
-              </button>
-            </Card>
-          );
-        })}
+        </aside>
       </div>
     </section>
   );
