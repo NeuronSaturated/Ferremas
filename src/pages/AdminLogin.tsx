@@ -92,18 +92,6 @@ const AdminLogin = () => {
           </Button>
         </form>
 
-        <div className="mt-6 rounded-md border border-border bg-muted/40 p-3 text-xs text-muted-foreground">
-          <p className="font-semibold text-foreground">Credenciales por defecto:</p>
-          <p>
-            Usuario: <code className="font-mono">admin</code>
-          </p>
-          <p>
-            Contraseña: <code className="font-mono">ferremas2026</code>
-          </p>
-          <p className="mt-2">
-            Puedes cambiarlas con `ADMIN_USER` y `ADMIN_PASS` en `.env`.
-          </p>
-        </div>
       </Card>
     </section>
   );

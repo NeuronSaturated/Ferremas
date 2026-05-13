@@ -76,14 +76,12 @@ await pool.query(`
 `);
 
 const seedProducts = async () => {
-  const { rows } = await pool.query("SELECT COUNT(*)::int AS count FROM products");
-  if (rows[0].count > 0) return;
-
   const now = new Date().toISOString();
   for (const [index, product] of productSeed.entries()) {
     await pool.query(
       `INSERT INTO products (id, sku, name, brand, category, price, stock, image_key, description, updated_at)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+       ON CONFLICT (id) DO NOTHING`,
       [
         `p${index + 1}`,
         `FM-${String(index + 1).padStart(3, "0")}`,

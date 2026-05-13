@@ -85,11 +85,8 @@ db.exec(`
 `);
 
 const seedProducts = () => {
-  const count = db.prepare("SELECT COUNT(*) AS count FROM products").get().count;
-  if (count > 0) return;
-
   const stmt = db.prepare(
-    `INSERT INTO products (id, sku, name, brand, category, price, stock, image_key, description, updated_at)
+    `INSERT OR IGNORE INTO products (id, sku, name, brand, category, price, stock, image_key, description, updated_at)
      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
   );
   const now = new Date().toISOString();
