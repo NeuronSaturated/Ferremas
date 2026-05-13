@@ -18,16 +18,19 @@ import {
   formatExpiry,
   maskCard,
 } from "@/lib/format";
-import { User, MapPin, CreditCard, Package, LogOut, Save, Database } from "lucide-react";
+import { User, MapPin, CreditCard, Package, LogOut, Save, Database, Lock } from "lucide-react";
 import { toast } from "sonner";
 
 const Profile = () => {
-  const { user, signOut, updateProfile } = useAuth();
+  const { user, signOut, updateProfile, updatePassword } = useAuth();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const initialTab = searchParams.get("tab") ?? "data";
   const [tab, setTab] = useState(initialTab);
   const [saving, setSaving] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [nextPassword, setNextPassword] = useState("");
+  const [repeatPassword, setRepeatPassword] = useState("");
 
   useEffect(() => {
     const currentTab = searchParams.get("tab");
@@ -117,6 +120,23 @@ const Profile = () => {
     }
   };
 
+  const onSavePassword = async (e: FormEvent) => {
+    e.preventDefault();
+    if (nextPassword.length < 6) return toast.error("La nueva contraseña debe tener al menos 6 caracteres");
+    if (nextPassword !== repeatPassword) return toast.error("Las contraseñas no coinciden");
+
+    setSaving(true);
+    try {
+      if (await updatePassword(currentPassword, nextPassword)) {
+        setCurrentPassword("");
+        setNextPassword("");
+        setRepeatPassword("");
+      }
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const handleSignOut = async () => {
     await signOut();
     navigate("/");
@@ -148,7 +168,7 @@ const Profile = () => {
       </header>
 
       <Tabs value={tab} onValueChange={handleTabChange}>
-        <TabsList className="grid w-full grid-cols-2 md:grid-cols-4">
+        <TabsList className="grid w-full grid-cols-2 md:grid-cols-5">
           <TabsTrigger value="data">
             <User className="mr-2 h-4 w-4" />
             Datos
@@ -160,6 +180,10 @@ const Profile = () => {
           <TabsTrigger value="card">
             <CreditCard className="mr-2 h-4 w-4" />
             Tarjeta
+          </TabsTrigger>
+          <TabsTrigger value="security">
+            <Lock className="mr-2 h-4 w-4" />
+            Seguridad
           </TabsTrigger>
           <TabsTrigger value="orders">
             <Package className="mr-2 h-4 w-4" />
@@ -301,6 +325,50 @@ const Profile = () => {
                 <Button type="submit" disabled={saving}>
                   <Save className="mr-2 h-4 w-4" />
                   {saving ? "Guardando..." : "Guardar tarjeta"}
+                </Button>
+              </div>
+            </form>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="security" className="mt-6">
+          <Card className="p-8">
+            <h2 className="mb-6 text-xl font-bold">Cambiar contraseña</h2>
+            <form onSubmit={onSavePassword} className="grid gap-5 md:grid-cols-2">
+              <div className="space-y-2 md:col-span-2">
+                <Label htmlFor="currentPassword">Contraseña actual</Label>
+                <Input
+                  id="currentPassword"
+                  type="password"
+                  value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="nextPassword">Nueva contraseña</Label>
+                <Input
+                  id="nextPassword"
+                  type="password"
+                  value={nextPassword}
+                  onChange={(e) => setNextPassword(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="repeatPassword">Repetir nueva contraseña</Label>
+                <Input
+                  id="repeatPassword"
+                  type="password"
+                  value={repeatPassword}
+                  onChange={(e) => setRepeatPassword(e.target.value)}
+                  required
+                />
+              </div>
+              <div className="md:col-span-2">
+                <Button type="submit" disabled={saving}>
+                  <Save className="mr-2 h-4 w-4" />
+                  {saving ? "Guardando..." : "Actualizar contraseña"}
                 </Button>
               </div>
             </form>

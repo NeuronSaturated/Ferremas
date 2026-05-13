@@ -11,7 +11,7 @@ import { UserPlus, LogIn, Wrench, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 
 const Auth = () => {
-  const { signIn, signUp } = useAuth();
+  const { signIn, signUp, recoverPassword } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const from = (location.state as { from?: string } | null)?.from ?? "/";
@@ -20,6 +20,7 @@ const Auth = () => {
   const [loginEmail, setLoginEmail] = useState("");
   const [loginPass, setLoginPass] = useState("");
   const [showLoginPass, setShowLoginPass] = useState(false);
+  const [recoverMode, setRecoverMode] = useState(false);
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
@@ -71,6 +72,16 @@ const Auth = () => {
     }
   };
 
+  const onRecover = async (e: FormEvent) => {
+    e.preventDefault();
+    setSubmitting(true);
+    try {
+      if (await recoverPassword(loginEmail)) setRecoverMode(false);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   return (
     <section className="container flex min-h-[80vh] items-center justify-center py-12">
       <Card className="w-full max-w-md p-8">
@@ -91,7 +102,7 @@ const Auth = () => {
           </TabsList>
 
           <TabsContent value="login" className="mt-6">
-            <form onSubmit={onLogin} className="space-y-4">
+            <form onSubmit={recoverMode ? onRecover : onLogin} className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="lemail">Email</Label>
                 <Input
@@ -103,6 +114,7 @@ const Auth = () => {
                   placeholder="tu@email.cl"
                 />
               </div>
+              {!recoverMode && (
               <div className="space-y-2">
                 <Label htmlFor="lpass">Contraseña</Label>
                 <div className="relative">
@@ -125,9 +137,18 @@ const Auth = () => {
                   </button>
                 </div>
               </div>
+              )}
               <Button type="submit" className="w-full" size="lg" disabled={submitting}>
                 <LogIn className="mr-2 h-4 w-4" />
-                {submitting ? "Entrando..." : "Entrar"}
+                {submitting ? "Procesando..." : recoverMode ? "Enviar instrucciones" : "Entrar"}
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                className="w-full"
+                onClick={() => setRecoverMode((value) => !value)}
+              >
+                {recoverMode ? "Volver al inicio de sesión" : "Olvidé mi contraseña"}
               </Button>
             </form>
           </TabsContent>

@@ -45,6 +45,7 @@ const ProductCard = ({ product }: { product: Product }) => {
           <span className="text-lg font-extrabold text-foreground">{formatCLP(product.price)}</span>
           <Button
             size="sm"
+            disabled={product.stock === 0}
             onClick={(e) => {
               e.stopPropagation();
               add(product);

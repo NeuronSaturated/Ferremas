@@ -72,6 +72,8 @@ type AuthCtx = {
   signIn: (email: string, password: string) => Promise<boolean>;
   signOut: () => Promise<void>;
   updateProfile: (patch: Partial<User>) => Promise<boolean>;
+  updatePassword: (currentPassword: string, nextPassword: string) => Promise<boolean>;
+  recoverPassword: (email: string) => Promise<boolean>;
   refreshUser: () => Promise<void>;
   setUser: (user: User | null) => void;
 };
@@ -185,8 +187,41 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
+  const updatePassword: AuthCtx["updatePassword"] = async (currentPassword, nextPassword) => {
+    const token = getSessionToken();
+    if (!token) return false;
+
+    try {
+      const response = await apiFetch<{ user: User }>("/api/auth/password", {
+        method: "PATCH",
+        token,
+        body: JSON.stringify({ currentPassword, nextPassword }),
+      });
+      setUser(response.user);
+      toast.success("Contraseña actualizada");
+      return true;
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "No se pudo cambiar la contraseña.");
+      return false;
+    }
+  };
+
+  const recoverPassword: AuthCtx["recoverPassword"] = async (email) => {
+    try {
+      const response = await apiFetch<{ message: string }>("/api/auth/recover", {
+        method: "POST",
+        body: JSON.stringify({ email }),
+      });
+      toast.success(response.message);
+      return true;
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "No se pudo iniciar la recuperación.");
+      return false;
+    }
+  };
+
   return (
-    <Ctx.Provider value={{ user, loading, signUp, signIn, signOut, updateProfile, refreshUser, setUser }}>
+    <Ctx.Provider value={{ user, loading, signUp, signIn, signOut, updateProfile, updatePassword, recoverPassword, refreshUser, setUser }}>
       {children}
     </Ctx.Provider>
   );

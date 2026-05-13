@@ -4,8 +4,15 @@ import { Card } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { products, formatCLP } from "@/data/products";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { formatCLP } from "@/data/products";
 import { branches } from "@/data/operations";
+import { useProducts } from "@/lib/product-api";
 import {
   Package,
   CheckCircle2,
@@ -69,9 +76,14 @@ const StatCard = ({ icon: Icon, label, value, sub }: StatCardProps) => (
 
 const Panel = () => {
   const navigate = useNavigate();
+  const { products } = useProducts();
   const [orders, setOrders] = useState<AdminOrder[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [statusFilter, setStatusFilter] = useState("Todos");
+  const [paymentFilter, setPaymentFilter] = useState("Todos");
+  const [branchFilter, setBranchFilter] = useState("Todas");
+  const [selectedOrder, setSelectedOrder] = useState<AdminOrder | null>(null);
 
   const loadOrders = useCallback(async (showSpinner = false) => {
     const token = getAdminToken();
@@ -143,6 +155,16 @@ const Panel = () => {
     () => orders.filter((order) => order.status !== "Rechazado").reduce((sum, order) => sum + order.total, 0),
     [orders]
   );
+  const displayedOrders = useMemo(
+    () =>
+      orders.filter(
+        (order) =>
+          (statusFilter === "Todos" || order.status === statusFilter) &&
+          (paymentFilter === "Todos" || order.paymentStatus === paymentFilter) &&
+          (branchFilter === "Todas" || order.branch === branchFilter)
+      ),
+    [branchFilter, orders, paymentFilter, statusFilter]
+  );
   const lowStock = products.filter((product) => product.stock < 25);
   const realBranchStats = branches.map((branch) => {
     const branchOrders = orders.filter((order) => order.branch === branch);
@@ -198,6 +220,42 @@ const Panel = () => {
         </TabsList>
 
         <TabsContent value="vendedor" className="space-y-6">
+          <Card className="grid gap-3 p-4 md:grid-cols-3">
+            <select
+              value={statusFilter}
+              onChange={(event) => setStatusFilter(event.target.value)}
+              className="h-10 rounded-md border border-input bg-background px-3 text-sm"
+            >
+              {["Todos", "Pendiente", "Aprobado", "Preparando", "Listo", "Despachado", "Rechazado"].map((status) => (
+                <option key={status} value={status}>
+                  Estado: {status}
+                </option>
+              ))}
+            </select>
+            <select
+              value={paymentFilter}
+              onChange={(event) => setPaymentFilter(event.target.value)}
+              className="h-10 rounded-md border border-input bg-background px-3 text-sm"
+            >
+              {["Todos", "Pendiente", "Confirmado"].map((status) => (
+                <option key={status} value={status}>
+                  Pago: {status}
+                </option>
+              ))}
+            </select>
+            <select
+              value={branchFilter}
+              onChange={(event) => setBranchFilter(event.target.value)}
+              className="h-10 rounded-md border border-input bg-background px-3 text-sm"
+            >
+              {["Todas", ...branches].map((branch) => (
+                <option key={branch} value={branch}>
+                  Sucursal: {branch}
+                </option>
+              ))}
+            </select>
+          </Card>
+
           <div className="grid gap-4 md:grid-cols-3">
             <StatCard icon={ClipboardCheck} label="Pedidos pendientes" value={orders.filter((order) => order.status === "Pendiente").length} sub="Requieren tu aprobacion" />
             <StatCard icon={Package} label="En preparacion" value={orders.filter((order) => order.status === "Preparando" || order.status === "Aprobado").length} />
@@ -219,7 +277,7 @@ const Panel = () => {
                 </tr>
               </thead>
               <tbody>
-                {orders.map((order) => (
+                {displayedOrders.map((order) => (
                   <tr key={order.id} className="border-t border-border">
                     <td className="px-4 py-3 font-medium">{order.id}</td>
                     <td className="px-4 py-3">{order.customer}</td>
@@ -235,6 +293,9 @@ const Panel = () => {
                       <div className="flex justify-end gap-2">
                         {order.status === "Pendiente" && (
                           <>
+                            <Button size="sm" variant="ghost" onClick={() => setSelectedOrder(order)}>
+                              Ver detalle
+                            </Button>
                             <Button size="sm" variant="outline" onClick={() => void updateOrder(order.id, { status: "Rechazado" }, `${order.id} rechazado`)}>
                               <XCircle className="mr-1 h-3 w-3" />
                               Rechazar
@@ -246,15 +307,32 @@ const Panel = () => {
                           </>
                         )}
                         {order.status === "Listo" && (
+                          <>
+                          <Button size="sm" variant="ghost" onClick={() => setSelectedOrder(order)}>
+                            Ver detalle
+                          </Button>
                           <Button size="sm" onClick={() => void updateOrder(order.id, { status: "Despachado" }, `${order.id} despachado al cliente`)}>
                             <Truck className="mr-1 h-3 w-3" />
                             Despachar
+                          </Button>
+                          </>
+                        )}
+                        {order.status !== "Pendiente" && order.status !== "Listo" && (
+                          <Button size="sm" variant="ghost" onClick={() => setSelectedOrder(order)}>
+                            Ver detalle
                           </Button>
                         )}
                       </div>
                     </td>
                   </tr>
                 ))}
+                {displayedOrders.length === 0 && (
+                  <tr>
+                    <td className="px-4 py-8 text-center text-muted-foreground" colSpan={7}>
+                      No hay pedidos con esos filtros.
+                    </td>
+                  </tr>
+                )}
               </tbody>
             </table>
           </Card>
@@ -353,7 +431,7 @@ const Panel = () => {
                 </tr>
               </thead>
               <tbody>
-                {orders.map((order) => (
+                {displayedOrders.map((order) => (
                   <tr key={order.id} className="border-t border-border">
                     <td className="px-4 py-3 font-medium">{order.id}</td>
                     <td className="px-4 py-3">{order.customer}</td>
@@ -371,6 +449,9 @@ const Panel = () => {
                           Confirmar pago
                         </Button>
                       )}
+                      <Button size="sm" variant="ghost" onClick={() => setSelectedOrder(order)}>
+                        Detalle
+                      </Button>
                     </td>
                   </tr>
                 ))}
@@ -448,6 +529,81 @@ const Panel = () => {
           </div>
         </TabsContent>
       </Tabs>
+
+      <Dialog open={Boolean(selectedOrder)} onOpenChange={(open) => !open && setSelectedOrder(null)}>
+        <DialogContent className="max-w-2xl">
+          {selectedOrder && (
+            <>
+              <DialogHeader>
+                <DialogTitle>Detalle {selectedOrder.id}</DialogTitle>
+              </DialogHeader>
+              <div className="grid gap-4 text-sm md:grid-cols-2">
+                <div className="rounded-md border border-border p-4">
+                  <p className="text-xs uppercase text-muted-foreground">Cliente</p>
+                  <p className="font-semibold">{selectedOrder.customer}</p>
+                  <p className="mt-3 text-xs uppercase text-muted-foreground">Entrega</p>
+                  <p>
+                    {selectedOrder.delivery === "retiro" ? "Retiro en tienda" : "Despacho a domicilio"} ·{" "}
+                    {selectedOrder.branch}
+                  </p>
+                </div>
+                <div className="rounded-md border border-border p-4">
+                  <p className="text-xs uppercase text-muted-foreground">Pago</p>
+                  <p className="font-semibold">{selectedOrder.payment}</p>
+                  <div className="mt-3 flex gap-2">
+                    <Badge className={statusColors[selectedOrder.status]}>{selectedOrder.status}</Badge>
+                    <Badge className={selectedOrder.paymentStatus === "Confirmado" ? "bg-success text-success-foreground" : "bg-warning text-warning-foreground"}>
+                      {selectedOrder.paymentStatus}
+                    </Badge>
+                  </div>
+                </div>
+              </div>
+              <div className="rounded-md border border-border">
+                <div className="border-b border-border p-3 font-semibold">Productos</div>
+                <div className="divide-y divide-border">
+                  {selectedOrder.items.map((item) => (
+                    <div key={`${selectedOrder.id}-${item.id}`} className="flex items-center justify-between gap-3 p-3 text-sm">
+                      <div>
+                        <p className="font-medium">{item.name}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {item.qty} unidad(es) · {formatCLP(item.price)}
+                        </p>
+                      </div>
+                      <p className="font-semibold">{formatCLP(item.price * item.qty)}</p>
+                    </div>
+                  ))}
+                </div>
+                <div className="flex justify-between border-t border-border p-3 font-bold">
+                  <span>Total</span>
+                  <span>{formatCLP(selectedOrder.total)}</span>
+                </div>
+              </div>
+              <div className="flex flex-wrap justify-end gap-2">
+                {selectedOrder.paymentStatus === "Pendiente" && (
+                  <Button onClick={() => void updateOrder(selectedOrder.id, { paymentStatus: "Confirmado" }, `Pago de ${selectedOrder.id} confirmado`)}>
+                    Confirmar pago
+                  </Button>
+                )}
+                {selectedOrder.status === "Pendiente" && (
+                  <Button onClick={() => void updateOrder(selectedOrder.id, { status: "Aprobado" }, `${selectedOrder.id} aprobado`)}>
+                    Aprobar pedido
+                  </Button>
+                )}
+                {selectedOrder.status === "Aprobado" && (
+                  <Button onClick={() => void updateOrder(selectedOrder.id, { status: "Preparando" }, `Preparando ${selectedOrder.id}`)}>
+                    Iniciar preparación
+                  </Button>
+                )}
+                {selectedOrder.status === "Preparando" && (
+                  <Button onClick={() => void updateOrder(selectedOrder.id, { status: "Listo" }, `${selectedOrder.id} listo`)}>
+                    Marcar listo
+                  </Button>
+                )}
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
     </section>
   );
 };

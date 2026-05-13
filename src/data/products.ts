@@ -63,6 +63,7 @@ export type Product = {
   price: number;
   stock: number;
   image: string;
+  imageKey?: string;
   description: string;
 };
 

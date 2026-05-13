@@ -2,7 +2,7 @@ import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ArrowRight, Truck, ShieldCheck, CreditCard, Store, Wrench, HardHat, PaintBucket, Cable } from "lucide-react";
 import ProductCard from "@/components/ProductCard";
-import { products } from "@/data/products";
+import { useProducts } from "@/lib/product-api";
 import hero from "@/assets/hero-warehouse.jpg";
 
 const categories = [
@@ -12,7 +12,10 @@ const categories = [
   { icon: Cable, label: "Eléctrico" },
 ];
 
-const Home = () => (
+const Home = () => {
+  const { products } = useProducts();
+
+  return (
   <>
     {/* HERO */}
     <section className="relative isolate overflow-hidden">
@@ -129,6 +132,7 @@ const Home = () => (
       </div>
     </section>
   </>
-);
+  );
+};
 
 export default Home;

@@ -1,15 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { products } from "@/data/products";
 import ProductCard from "@/components/ProductCard";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search, ChevronLeft, ChevronRight } from "lucide-react";
+import { useProducts } from "@/lib/product-api";
 
 const cats = ["Todos", "Herramientas", "Construcción", "Pinturas", "Eléctrico", "Seguridad"] as const;
 const PAGE_SIZE = 8;
 
 const Catalog = () => {
+  const { products } = useProducts();
   const [params, setParams] = useSearchParams();
   const initial = params.get("cat") ?? "Todos";
   const initialQ = params.get("q") ?? "";
@@ -28,7 +29,7 @@ const Catalog = () => {
         (cat === "Todos" || p.category === cat) &&
         (q === "" || `${p.name} ${p.brand} ${p.sku}`.toLowerCase().includes(q.toLowerCase()))
     );
-  }, [cat, q]);
+  }, [cat, products, q]);
 
   const totalPages = Math.max(1, Math.ceil(list.length / PAGE_SIZE));
 

@@ -15,9 +15,10 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
-import { products, formatCLP } from "@/data/products";
+import { formatCLP } from "@/data/products";
 import { isAdminAuthenticated } from "@/lib/admin-auth";
 import BrandMark from "@/components/BrandMark";
+import { useProducts } from "@/lib/product-api";
 
 const baseNavItems = [
   { to: "/", label: "Inicio" },
@@ -29,6 +30,7 @@ const adminNavItem = { to: "/panel", label: "Panel Interno", icon: Lock };
 const SiteHeader = () => {
   const { count } = useCart();
   const { user, signOut } = useAuth();
+  const { products } = useProducts();
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const [q, setQ] = useState("");
@@ -44,7 +46,7 @@ const SiteHeader = () => {
     return products
       .filter((p) => `${p.name} ${p.brand} ${p.sku} ${p.category}`.toLowerCase().includes(term))
       .slice(0, 6);
-  }, [q]);
+  }, [products, q]);
 
   // Cerrar el dropdown al hacer click fuera
   useEffect(() => {

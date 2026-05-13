@@ -5,6 +5,8 @@ const adapter = usingPostgres
   : await import("./db-sqlite.js");
 
 export const getDbPath = adapter.getDbPath;
+export const getProducts = adapter.getProducts;
+export const getProductById = adapter.getProductById;
 export const createUser = adapter.createUser;
 export const getUserByEmail = adapter.getUserByEmail;
 export const getUserById = adapter.getUserById;
@@ -14,6 +16,7 @@ export const deleteSession = adapter.deleteSession;
 export const getOrdersByUserId = adapter.getOrdersByUserId;
 export const getUserWithOrders = adapter.getUserWithOrders;
 export const updateUserProfile = adapter.updateUserProfile;
+export const updateUserPassword = adapter.updateUserPassword;
 export const createTransferOrder = adapter.createTransferOrder;
 export const createWebpayOrderDraft = adapter.createWebpayOrderDraft;
 export const getOrderById = adapter.getOrderById;

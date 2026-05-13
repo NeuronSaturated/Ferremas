@@ -1,16 +1,17 @@
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { products, formatCLP } from "@/data/products";
+import { formatCLP } from "@/data/products";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { useCart } from "@/context/CartContext";
 import { ArrowLeft, ShoppingCart, Package, Truck, ShieldCheck } from "lucide-react";
-import { toast } from "sonner";
+import { useProducts } from "@/lib/product-api";
 
 const ProductDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { add } = useCart();
+  const { products } = useProducts();
   const product = products.find((p) => p.id === id);
 
   if (!product) {
@@ -26,7 +27,6 @@ const ProductDetail = () => {
 
   const handleAdd = () => {
     add(product);
-    toast.success(`${product.name} agregado al carrito`);
   };
 
   return (

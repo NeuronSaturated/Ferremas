@@ -10,12 +10,14 @@ import {
   getAdminOrders,
   getDbPath,
   getOrderByWebpayToken,
+  getProducts,
   getSession,
   getUserByEmail,
   getUserWithOrders,
   markWebpayOrderAuthorized,
   updateOrderAdminState,
   updateUserProfile,
+  updateUserPassword,
 } from "./db.js";
 import { hashPassword, verifyPassword } from "./security.js";
 import { getWebpayTransaction, isProductionTransbank } from "./transbank.js";
@@ -110,20 +112,23 @@ const sanitizeUserResponse = (user, token) => ({
   user,
 });
 
-const normalizeOrderPayload = ({ items, shipping = 0, delivery, branch }) => {
+const normalizeOrderPayload = async ({ items, shipping = 0, delivery, branch }) => {
+  const products = await getProducts();
+  const productById = new Map(products.map((product) => [product.id, product]));
   const normalizedItems = Array.isArray(items)
     ? items.map((item) => ({
         id: String(item.id),
-        name: String(item.name),
-        price: Number(item.price),
+        name: productById.get(String(item.id))?.name || String(item.name),
+        price: Number(productById.get(String(item.id))?.price ?? item.price),
         qty: Number(item.qty),
-        image: String(item.image),
+        image: productById.get(String(item.id))?.imageKey || String(item.image),
       }))
     : [];
 
   const hasInvalidItem = normalizedItems.some(
     (item) =>
       !item.id ||
+      !productById.has(item.id) ||
       !item.name ||
       !Number.isFinite(item.price) ||
       item.price < 0 ||
@@ -155,6 +160,14 @@ app.get("/api/health", (_req, res) => {
     environment: isProductionTransbank() ? "production" : "integration",
     database: getDbPath(),
   });
+});
+
+app.get("/api/products", async (_req, res, next) => {
+  try {
+    res.json({ products: await getProducts() });
+  } catch (error) {
+    next(error);
+  }
 });
 
 app.post("/api/auth/signup", async (req, res) => {
@@ -248,9 +261,47 @@ app.patch("/api/auth/profile", requireUserSession, async (req, res) => {
   }
 });
 
+app.patch("/api/auth/password", requireUserSession, async (req, res) => {
+  try {
+    const currentPassword = String(req.body?.currentPassword || "");
+    const nextPassword = String(req.body?.nextPassword || "");
+    const user = await getUserByEmail(req.user.email);
+
+    if (!user || !verifyPassword(currentPassword, user.passwordHash)) {
+      return res.status(401).json({ message: "La contraseña actual no es correcta." });
+    }
+
+    if (nextPassword.length < 6) {
+      return res.status(400).json({ message: "La nueva contraseña debe tener al menos 6 caracteres." });
+    }
+
+    const updated = await updateUserPassword(req.user.id, hashPassword(nextPassword));
+    return res.json({ user: updated });
+  } catch (error) {
+    console.error("Error cambiando contraseña:", error);
+    return res.status(500).json({ message: "No se pudo cambiar la contraseña." });
+  }
+});
+
+app.post("/api/auth/recover", async (req, res) => {
+  const email = String(req.body?.email || "").trim().toLowerCase();
+  const user = email ? await getUserByEmail(email) : null;
+
+  if (!user) {
+    return res.json({
+      message: "Si el correo existe, se enviaran instrucciones para recuperar la contraseña.",
+    });
+  }
+
+  return res.json({
+    message:
+      "Recuperacion simulada para demo: entra a tu perfil y usa Cambiar contraseña. En produccion se enviaria un correo con token seguro.",
+  });
+});
+
 app.post("/api/orders/transfer", requireUserSession, async (req, res) => {
   try {
-    const payload = normalizeOrderPayload(req.body || {});
+    const payload = await normalizeOrderPayload(req.body || {});
     const order = await createTransferOrder({
       userId: req.user.id,
       total: payload.total,
@@ -269,7 +320,7 @@ app.post("/api/orders/transfer", requireUserSession, async (req, res) => {
 
 app.post("/api/payments/webpay/create", requireUserSession, async (req, res) => {
   try {
-    const payload = normalizeOrderPayload(req.body || {});
+    const payload = await normalizeOrderPayload(req.body || {});
     const orderId = `ORD-${Date.now()}`;
     const sessionId = randomUUID();
     const returnUrl = `${backendUrl}/api/payments/webpay/return`;
@@ -384,6 +435,52 @@ app.post("/api/admin/login", async (req, res) => {
 
   const token = await createSession({ role: "admin" });
   return res.json({ token });
+});
+
+app.post("/api/chat", async (req, res) => {
+  const message = String(req.body?.message || "").trim().toLowerCase();
+  const products = await getProducts();
+
+  if (!message) {
+    return res.status(400).json({ message: "Escribe una pregunta para el asistente." });
+  }
+
+  const matches = products
+    .filter((product) =>
+      `${product.name} ${product.brand} ${product.category} ${product.sku}`
+        .toLowerCase()
+        .includes(message)
+    )
+    .slice(0, 3);
+
+  if (matches.length > 0) {
+    return res.json({
+      reply: `Encontré ${matches.length} producto(s) que calzan con tu búsqueda. Te recomiendo revisar stock antes de pagar.`,
+      products: matches,
+    });
+  }
+
+  if (message.includes("webpay") || message.includes("transbank") || message.includes("pago")) {
+    return res.json({
+      reply:
+        "Puedes pagar con Webpay Plus usando las tarjetas de prueba de Transbank en integración, o dejar el pedido por transferencia para validación manual.",
+      products: [],
+    });
+  }
+
+  if (message.includes("despacho") || message.includes("retiro") || message.includes("sucursal")) {
+    return res.json({
+      reply:
+        "Puedes elegir retiro en tienda gratis o despacho a domicilio. Para retiro, selecciona la sucursal antes de confirmar el pedido.",
+      products: [],
+    });
+  }
+
+  return res.json({
+    reply:
+      "Soy el asistente FERREMAS. Puedo ayudarte a buscar productos, revisar medios de pago, despacho, retiro y estado general de compras.",
+    products: [],
+  });
 });
 
 app.post("/api/admin/logout", requireAdminSession, async (req, res) => {

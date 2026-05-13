@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import type { Product } from "@/data/products";
 import { toast } from "sonner";
+import { useAuth } from "@/context/AuthContext";
 
 type CartItem = Product & { qty: number };
 
@@ -29,23 +30,49 @@ const loadCart = (): CartItem[] => {
 };
 
 export const CartProvider = ({ children }: { children: ReactNode }) => {
+  const { user, loading } = useAuth();
   const [items, setItems] = useState<CartItem[]>(loadCart);
 
   useEffect(() => {
     localStorage.setItem(CART_KEY, JSON.stringify(items));
   }, [items]);
 
+  useEffect(() => {
+    if (!loading && !user && items.length > 0) {
+      setItems([]);
+      localStorage.removeItem(CART_KEY);
+    }
+  }, [items.length, loading, user]);
+
   const add = (p: Product) => {
+    if (!user) {
+      toast.error("Inicia sesión para agregar productos al carrito");
+      return;
+    }
+
+    if (p.stock <= 0) {
+      toast.error("Producto sin stock disponible");
+      return;
+    }
+
     setItems((prev) => {
       const e = prev.find((i) => i.id === p.id);
-      if (e) return prev.map((i) => (i.id === p.id ? { ...i, qty: i.qty + 1 } : i));
+      if (e) {
+        if (e.qty >= p.stock) {
+          toast.error(`Solo quedan ${p.stock} unidad(es) disponibles`);
+          return prev;
+        }
+        return prev.map((i) => (i.id === p.id ? { ...i, qty: i.qty + 1 } : i));
+      }
       return [...prev, { ...p, qty: 1 }];
     });
     toast.success(`${p.name} agregado al carrito`);
   };
   const remove = (id: string) => setItems((prev) => prev.filter((i) => i.id !== id));
   const setQty = (id: string, qty: number) =>
-    setItems((prev) => prev.map((i) => (i.id === id ? { ...i, qty: Math.max(1, qty) } : i)));
+    setItems((prev) =>
+      prev.map((i) => (i.id === id ? { ...i, qty: Math.min(i.stock, Math.max(1, qty)) } : i))
+    );
   const clear = () => setItems([]);
 
   const total = items.reduce((s, i) => s + i.price * i.qty, 0);

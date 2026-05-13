@@ -2,6 +2,7 @@ import { mkdirSync } from "node:fs";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
 import { DatabaseSync } from "node:sqlite";
+import { productSeed } from "../shared/product-seed.js";
 
 const defaultDataDir = path.resolve("server", "data");
 const configuredDbPath = process.env.SQLITE_PATH
@@ -68,7 +69,48 @@ db.exec(`
     image TEXT NOT NULL,
     FOREIGN KEY (order_id) REFERENCES orders(id)
   );
+
+  CREATE TABLE IF NOT EXISTS products (
+    id TEXT PRIMARY KEY,
+    sku TEXT NOT NULL UNIQUE,
+    name TEXT NOT NULL,
+    brand TEXT NOT NULL,
+    category TEXT NOT NULL,
+    price INTEGER NOT NULL,
+    stock INTEGER NOT NULL,
+    image_key TEXT NOT NULL,
+    description TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+  );
 `);
+
+const seedProducts = () => {
+  const count = db.prepare("SELECT COUNT(*) AS count FROM products").get().count;
+  if (count > 0) return;
+
+  const stmt = db.prepare(
+    `INSERT INTO products (id, sku, name, brand, category, price, stock, image_key, description, updated_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+  );
+  const now = new Date().toISOString();
+
+  productSeed.forEach((product, index) => {
+    stmt.run(
+      `p${index + 1}`,
+      `FM-${String(index + 1).padStart(3, "0")}`,
+      product.name,
+      product.brand,
+      product.category,
+      product.price,
+      product.stock,
+      product.imageKey,
+      product.description,
+      now
+    );
+  });
+};
+
+seedProducts();
 
 const parseJson = (value) => {
   if (!value) return undefined;
@@ -76,6 +118,70 @@ const parseJson = (value) => {
     return JSON.parse(value);
   } catch {
     return undefined;
+  }
+};
+
+const mapProductRow = (row) => ({
+  id: row.id,
+  sku: row.sku,
+  name: row.name,
+  brand: row.brand,
+  category: row.category,
+  price: row.price,
+  stock: row.stock,
+  imageKey: row.image_key,
+  description: row.description,
+});
+
+export const getProducts = () =>
+  db.prepare("SELECT * FROM products ORDER BY sku ASC").all().map(mapProductRow);
+
+export const getProductById = (id) => {
+  const row = db.prepare("SELECT * FROM products WHERE id = ?").get(id);
+  return row ? mapProductRow(row) : null;
+};
+
+const assertAndNormalizeItems = (items, { deductStock = false } = {}) => {
+  const normalized = [];
+
+  for (const item of items) {
+    const product = getProductById(item.id);
+    const qty = Number(item.qty);
+
+    if (!product || !Number.isFinite(qty) || qty <= 0) {
+      throw new Error("Los productos del pedido son invalidos.");
+    }
+
+    if (deductStock && product.stock < qty) {
+      throw new Error(`Stock insuficiente para ${product.name}. Disponible: ${product.stock}.`);
+    }
+
+    normalized.push({
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      qty,
+      image: product.imageKey,
+    });
+  }
+
+  if (deductStock) {
+    const stmt = db.prepare("UPDATE products SET stock = stock - ?, updated_at = ? WHERE id = ?");
+    const now = new Date().toISOString();
+    for (const item of normalized) {
+      stmt.run(item.qty, now, item.id);
+    }
+  }
+
+  return normalized;
+};
+
+const restoreOrderStock = (orderId) => {
+  const items = getOrderItemsByIds([orderId]);
+  const stmt = db.prepare("UPDATE products SET stock = stock + ?, updated_at = ? WHERE id = ?");
+  const now = new Date().toISOString();
+  for (const item of items) {
+    stmt.run(item.qty, now, item.product_id);
   }
 };
 
@@ -241,6 +347,11 @@ export const updateUserProfile = (userId, patch) => {
   return getUserWithOrders(userId);
 };
 
+export const updateUserPassword = (userId, passwordHash) => {
+  db.prepare("UPDATE users SET password_hash = ? WHERE id = ?").run(passwordHash, userId);
+  return getUserWithOrders(userId);
+};
+
 const insertOrderRecord = ({
   id,
   userId,
@@ -289,6 +400,7 @@ const insertOrderItems = (orderId, items) => {
 export const createTransferOrder = ({ userId, total, delivery, branch, items }) => {
   const id = `ORD-${Date.now()}`;
   const date = new Date().toISOString();
+  const normalizedItems = assertAndNormalizeItems(items, { deductStock: true });
 
   insertOrderRecord({
     id,
@@ -302,7 +414,7 @@ export const createTransferOrder = ({ userId, total, delivery, branch, items }) 
     date,
   });
 
-  insertOrderItems(id, items);
+  insertOrderItems(id, normalizedItems);
   return getOrderById(id);
 };
 
@@ -316,6 +428,8 @@ export const createWebpayOrderDraft = ({
   webpayToken,
   sessionId,
 }) => {
+  const normalizedItems = assertAndNormalizeItems(items);
+
   insertOrderRecord({
     id: orderId,
     userId,
@@ -330,7 +444,7 @@ export const createWebpayOrderDraft = ({
     webpaySessionId: sessionId,
   });
 
-  insertOrderItems(orderId, items);
+  insertOrderItems(orderId, normalizedItems);
   return getOrderById(orderId);
 };
 
@@ -361,6 +475,11 @@ export const markWebpayOrderAuthorized = ({
   authorizationCode,
   cardLast4,
 }) => {
+  const order = getOrderById(orderId);
+  if (!order) return null;
+  if (order.paymentStatus === "Confirmado") return order;
+  assertAndNormalizeItems(order.items, { deductStock: true });
+
   db.prepare(
     `UPDATE orders
      SET status = 'Aprobado',
@@ -377,6 +496,10 @@ export const markWebpayOrderAuthorized = ({
 export const updateOrderAdminState = ({ orderId, status, paymentStatus }) => {
   const current = db.prepare("SELECT status, payment_status FROM orders WHERE id = ?").get(orderId);
   if (!current) return null;
+
+  if (status === "Rechazado" && current.status !== "Rechazado") {
+    restoreOrderStock(orderId);
+  }
 
   db.prepare(
     `UPDATE orders

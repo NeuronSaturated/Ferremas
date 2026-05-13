@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import pg from "pg";
+import { productSeed } from "../shared/product-seed.js";
 
 const { Pool } = pg;
 
@@ -59,7 +60,47 @@ await pool.query(`
     image TEXT NOT NULL,
     FOREIGN KEY (order_id) REFERENCES orders(id)
   );
+
+  CREATE TABLE IF NOT EXISTS products (
+    id TEXT PRIMARY KEY,
+    sku TEXT NOT NULL UNIQUE,
+    name TEXT NOT NULL,
+    brand TEXT NOT NULL,
+    category TEXT NOT NULL,
+    price INTEGER NOT NULL,
+    stock INTEGER NOT NULL,
+    image_key TEXT NOT NULL,
+    description TEXT NOT NULL,
+    updated_at TEXT NOT NULL
+  );
 `);
+
+const seedProducts = async () => {
+  const { rows } = await pool.query("SELECT COUNT(*)::int AS count FROM products");
+  if (rows[0].count > 0) return;
+
+  const now = new Date().toISOString();
+  for (const [index, product] of productSeed.entries()) {
+    await pool.query(
+      `INSERT INTO products (id, sku, name, brand, category, price, stock, image_key, description, updated_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+      [
+        `p${index + 1}`,
+        `FM-${String(index + 1).padStart(3, "0")}`,
+        product.name,
+        product.brand,
+        product.category,
+        product.price,
+        product.stock,
+        product.imageKey,
+        product.description,
+        now,
+      ]
+    );
+  }
+};
+
+await seedProducts();
 
 const parseJson = (value) => {
   if (!value) return undefined;
@@ -90,6 +131,81 @@ const mapUserRow = (row, includePassword = false) => {
   }
 
   return user;
+};
+
+const mapProductRow = (row) => ({
+  id: row.id,
+  sku: row.sku,
+  name: row.name,
+  brand: row.brand,
+  category: row.category,
+  price: Number(row.price),
+  stock: Number(row.stock),
+  imageKey: row.image_key,
+  description: row.description,
+});
+
+export const getProducts = async () => {
+  const { rows } = await pool.query("SELECT * FROM products ORDER BY sku ASC");
+  return rows.map(mapProductRow);
+};
+
+export const getProductById = async (id) => {
+  const { rows } = await pool.query("SELECT * FROM products WHERE id = $1", [id]);
+  return rows[0] ? mapProductRow(rows[0]) : null;
+};
+
+const assertAndNormalizeItems = async (client, items, { deductStock = false } = {}) => {
+  const normalized = [];
+
+  for (const item of items) {
+    const { rows } = await client.query("SELECT * FROM products WHERE id = $1 FOR UPDATE", [
+      item.id,
+    ]);
+    const product = rows[0] ? mapProductRow(rows[0]) : null;
+    const qty = Number(item.qty);
+
+    if (!product || !Number.isFinite(qty) || qty <= 0) {
+      throw new Error("Los productos del pedido son invalidos.");
+    }
+
+    if (deductStock && product.stock < qty) {
+      throw new Error(`Stock insuficiente para ${product.name}. Disponible: ${product.stock}.`);
+    }
+
+    normalized.push({
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      qty,
+      image: product.imageKey,
+    });
+  }
+
+  if (deductStock) {
+    const now = new Date().toISOString();
+    for (const item of normalized) {
+      await client.query("UPDATE products SET stock = stock - $1, updated_at = $2 WHERE id = $3", [
+        item.qty,
+        now,
+        item.id,
+      ]);
+    }
+  }
+
+  return normalized;
+};
+
+const restoreOrderStock = async (client, orderId) => {
+  const items = await getOrderItemsByIds([orderId]);
+  const now = new Date().toISOString();
+  for (const item of items) {
+    await client.query("UPDATE products SET stock = stock + $1, updated_at = $2 WHERE id = $3", [
+      Number(item.qty),
+      now,
+      item.product_id,
+    ]);
+  }
 };
 
 const mapOrderRows = (orderRows, itemRows) =>
@@ -236,6 +352,11 @@ export const updateUserProfile = async (userId, patch) => {
   return getUserWithOrders(userId);
 };
 
+export const updateUserPassword = async (userId, passwordHash) => {
+  await pool.query("UPDATE users SET password_hash = $1 WHERE id = $2", [passwordHash, userId]);
+  return getUserWithOrders(userId);
+};
+
 const insertOrderRecord = async (
   client,
   {
@@ -289,6 +410,9 @@ const createOrder = async ({ id, userId, total, status, delivery, payment, payme
 
   try {
     await client.query("BEGIN");
+    const normalizedItems = await assertAndNormalizeItems(client, items, {
+      deductStock: payment !== "Webpay Plus (Transbank)",
+    });
     await insertOrderRecord(client, {
       id,
       userId,
@@ -302,7 +426,7 @@ const createOrder = async ({ id, userId, total, status, delivery, payment, payme
       webpayToken,
       webpaySessionId,
     });
-    await insertOrderItems(client, id, items);
+    await insertOrderItems(client, id, normalizedItems);
     await client.query("COMMIT");
     return getOrderById(id);
   } catch (error) {
@@ -380,34 +504,76 @@ export const markWebpayOrderAuthorized = async ({
   authorizationCode,
   cardLast4,
 }) => {
-  await pool.query(
-    `UPDATE orders
-     SET status = 'Aprobado',
-         payment = $1,
-         payment_status = 'Confirmado',
-         authorization_code = $2,
-         card_last4 = $3
-     WHERE id = $4`,
-    [paymentLabel, authorizationCode, cardLast4, orderId]
-  );
+  const client = await pool.connect();
+
+  try {
+    await client.query("BEGIN");
+    const { rows } = await client.query("SELECT payment_status FROM orders WHERE id = $1 FOR UPDATE", [
+      orderId,
+    ]);
+    if (!rows[0]) {
+      await client.query("ROLLBACK");
+      return null;
+    }
+
+    if (rows[0].payment_status !== "Confirmado") {
+      const order = await getOrderById(orderId);
+      await assertAndNormalizeItems(client, order.items, { deductStock: true });
+    }
+
+    await client.query(
+      `UPDATE orders
+       SET status = 'Aprobado',
+           payment = $1,
+           payment_status = 'Confirmado',
+           authorization_code = $2,
+           card_last4 = $3
+       WHERE id = $4`,
+      [paymentLabel, authorizationCode, cardLast4, orderId]
+    );
+    await client.query("COMMIT");
+  } catch (error) {
+    await client.query("ROLLBACK");
+    throw error;
+  } finally {
+    client.release();
+  }
 
   return getOrderById(orderId);
 };
 
 export const updateOrderAdminState = async ({ orderId, status, paymentStatus }) => {
-  const { rows } = await pool.query(
-    "SELECT status, payment_status FROM orders WHERE id = $1",
-    [orderId]
-  );
-  const current = rows[0];
-  if (!current) return null;
+  const client = await pool.connect();
 
-  await pool.query(
-    `UPDATE orders
-     SET status = $1, payment_status = $2
-     WHERE id = $3`,
-    [status ?? current.status, paymentStatus ?? current.payment_status, orderId]
-  );
+  try {
+    await client.query("BEGIN");
+    const { rows } = await client.query(
+      "SELECT status, payment_status FROM orders WHERE id = $1 FOR UPDATE",
+      [orderId]
+    );
+    const current = rows[0];
+    if (!current) {
+      await client.query("ROLLBACK");
+      return null;
+    }
+
+    if (status === "Rechazado" && current.status !== "Rechazado") {
+      await restoreOrderStock(client, orderId);
+    }
+
+    await client.query(
+      `UPDATE orders
+       SET status = $1, payment_status = $2
+       WHERE id = $3`,
+      [status ?? current.status, paymentStatus ?? current.payment_status, orderId]
+    );
+    await client.query("COMMIT");
+  } catch (error) {
+    await client.query("ROLLBACK");
+    throw error;
+  } finally {
+    client.release();
+  }
 
   return getOrderById(orderId);
 };
