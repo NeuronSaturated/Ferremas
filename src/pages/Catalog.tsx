@@ -18,9 +18,10 @@ const Catalog = () => {
   const [q, setQ] = useState(initialQ);
   const [page, setPage] = useState(1);
 
-  // Sincroniza el input con el query param (cuando se busca desde el header)
+  // Sincroniza filtros con la URL, especialmente cuando se busca desde el header.
   useEffect(() => {
     setQ(params.get("q") ?? "");
+    setCat(params.get("cat") ?? "Todos");
   }, [params]);
 
   const list = useMemo(() => {
@@ -72,9 +73,10 @@ const Catalog = () => {
               size="sm"
               onClick={() => {
                 setCat(c);
-                if (c === "Todos") params.delete("cat");
-                else params.set("cat", c);
-                setParams(params, { replace: true });
+                const nextParams = new URLSearchParams(params);
+                if (c === "Todos") nextParams.delete("cat");
+                else nextParams.set("cat", c);
+                setParams(nextParams, { replace: true });
               }}
             >
               {c}
