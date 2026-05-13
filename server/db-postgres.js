@@ -81,7 +81,15 @@ const seedProducts = async () => {
     await pool.query(
       `INSERT INTO products (id, sku, name, brand, category, price, stock, image_key, description, updated_at)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-       ON CONFLICT (id) DO NOTHING`,
+       ON CONFLICT (id) DO UPDATE SET
+         sku = EXCLUDED.sku,
+         name = EXCLUDED.name,
+         brand = EXCLUDED.brand,
+         category = EXCLUDED.category,
+         price = EXCLUDED.price,
+         image_key = EXCLUDED.image_key,
+         description = EXCLUDED.description,
+         updated_at = EXCLUDED.updated_at`,
       [
         `p${index + 1}`,
         `FM-${String(index + 1).padStart(3, "0")}`,

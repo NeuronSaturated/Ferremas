@@ -86,8 +86,17 @@ db.exec(`
 
 const seedProducts = () => {
   const stmt = db.prepare(
-    `INSERT OR IGNORE INTO products (id, sku, name, brand, category, price, stock, image_key, description, updated_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+    `INSERT INTO products (id, sku, name, brand, category, price, stock, image_key, description, updated_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+     ON CONFLICT(id) DO UPDATE SET
+       sku = excluded.sku,
+       name = excluded.name,
+       brand = excluded.brand,
+       category = excluded.category,
+       price = excluded.price,
+       image_key = excluded.image_key,
+       description = excluded.description,
+       updated_at = excluded.updated_at`
   );
   const now = new Date().toISOString();
 
