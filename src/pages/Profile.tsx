@@ -18,7 +18,7 @@ import {
   formatExpiry,
   maskCard,
 } from "@/lib/format";
-import { User, MapPin, CreditCard, Package, LogOut, Save, Database, Lock } from "lucide-react";
+import { User, MapPin, CreditCard, Package, LogOut, Save, ShieldCheck, Lock } from "lucide-react";
 import { toast } from "sonner";
 
 const Profile = () => {
@@ -158,8 +158,8 @@ const Profile = () => {
         </div>
         <div className="flex flex-wrap gap-3">
           <div className="inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/5 px-3 py-2 text-xs text-muted-foreground">
-            <Database className="h-3.5 w-3.5 text-primary" />
-            Datos persistidos en SQLite
+            <ShieldCheck className="h-3.5 w-3.5 text-primary" />
+            Cuenta protegida
           </div>
           <Button variant="outline" onClick={handleSignOut}>
             <LogOut className="mr-2 h-4 w-4" /> Cerrar sesion
@@ -381,7 +381,7 @@ const Profile = () => {
               <div>
                 <h2 className="text-xl font-bold">Historial de compras</h2>
                 <p className="text-sm text-muted-foreground">
-                  Tus pedidos ahora se guardan en la base de datos del backend.
+                  Revisa tus pedidos, pagos y estado de preparación.
                 </p>
               </div>
               <Badge variant="outline">{user.orders.length} pedido(s)</Badge>

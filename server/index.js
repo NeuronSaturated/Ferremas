@@ -438,29 +438,73 @@ app.post("/api/admin/login", async (req, res) => {
 });
 
 app.post("/api/chat", async (req, res) => {
-  const message = String(req.body?.message || "").trim().toLowerCase();
+  const message = String(req.body?.message || "").trim();
   const products = await getProducts();
 
   if (!message) {
     return res.status(400).json({ message: "Escribe una pregunta para el asistente." });
   }
 
+  const normalize = (value) =>
+    value
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "");
+  const normalizedMessage = normalize(message);
+  const stopwords = new Set([
+    "ando",
+    "buscando",
+    "buscar",
+    "busco",
+    "comprar",
+    "compro",
+    "cotizar",
+    "cotizo",
+    "de",
+    "del",
+    "el",
+    "en",
+    "estoy",
+    "hola",
+    "la",
+    "las",
+    "lo",
+    "los",
+    "me",
+    "necesito",
+    "para",
+    "por",
+    "quiero",
+    "un",
+    "una",
+    "y",
+  ]);
+  const terms = normalizedMessage
+    .split(/[^a-z0-9]+/)
+    .filter((term) => term.length >= 3 && !stopwords.has(term));
+
   const matches = products
-    .filter((product) =>
-      `${product.name} ${product.brand} ${product.category} ${product.sku}`
-        .toLowerCase()
-        .includes(message)
-    )
+    .map((product) => {
+      const searchable = normalize(
+        `${product.name} ${product.brand} ${product.category} ${product.sku} ${product.description}`
+      );
+      const score = terms.reduce((sum, term) => sum + (searchable.includes(term) ? 1 : 0), 0);
+      return { product, score };
+    })
+    .filter(({ score }) => score > 0)
+    .sort((a, b) => b.score - a.score || b.product.stock - a.product.stock)
+    .map(({ product }) => product)
     .slice(0, 3);
 
   if (matches.length > 0) {
+    const first = matches[0];
     return res.json({
-      reply: `Encontré ${matches.length} producto(s) que calzan con tu búsqueda. Te recomiendo revisar stock antes de pagar.`,
+      reply: `Encontré ${matches.length} opción(es). La más cercana es ${first.name}, marca ${first.brand}, con stock ${first.stock} y precio ${new Intl.NumberFormat("es-CL", { style: "currency", currency: "CLP", maximumFractionDigits: 0 }).format(first.price)}.`,
       products: matches,
     });
   }
 
-  if (message.includes("webpay") || message.includes("transbank") || message.includes("pago")) {
+  if (normalizedMessage.includes("webpay") || normalizedMessage.includes("transbank") || normalizedMessage.includes("pago")) {
     return res.json({
       reply:
         "Puedes pagar con Webpay Plus usando las tarjetas de prueba de Transbank en integración, o dejar el pedido por transferencia para validación manual.",
@@ -468,7 +512,7 @@ app.post("/api/chat", async (req, res) => {
     });
   }
 
-  if (message.includes("despacho") || message.includes("retiro") || message.includes("sucursal")) {
+  if (normalizedMessage.includes("despacho") || normalizedMessage.includes("retiro") || normalizedMessage.includes("sucursal")) {
     return res.json({
       reply:
         "Puedes elegir retiro en tienda gratis o despacho a domicilio. Para retiro, selecciona la sucursal antes de confirmar el pedido.",
@@ -478,7 +522,7 @@ app.post("/api/chat", async (req, res) => {
 
   return res.json({
     reply:
-      "Soy el asistente FERREMAS. Puedo ayudarte a buscar productos, revisar medios de pago, despacho, retiro y estado general de compras.",
+      "No encontré un producto exacto. Prueba con una palabra clave como taladro, martillo, pintura, cable, casco o cemento.",
     products: [],
   });
 });

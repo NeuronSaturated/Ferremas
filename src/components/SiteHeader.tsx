@@ -1,5 +1,5 @@
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
-import { ShoppingCart, Menu, Lock, Search, User as UserIcon, LogOut, Package, ChevronDown } from "lucide-react";
+import { ShoppingCart, Menu, Search, User as UserIcon, LogOut, Package, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useCart } from "@/context/CartContext";
@@ -16,7 +16,6 @@ import {
 import { cn } from "@/lib/utils";
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { formatCLP } from "@/data/products";
-import { isAdminAuthenticated } from "@/lib/admin-auth";
 import BrandMark from "@/components/BrandMark";
 import { useProducts } from "@/lib/product-api";
 
@@ -25,7 +24,6 @@ const baseNavItems = [
   { to: "/catalogo", label: "Catálogo" },
   { to: "/sucursales", label: "Sucursales" },
 ];
-const adminNavItem = { to: "/panel", label: "Panel Interno", icon: Lock };
 
 const SiteHeader = () => {
   const { count } = useCart();
@@ -36,7 +34,7 @@ const SiteHeader = () => {
   const [q, setQ] = useState("");
   const [open, setOpen] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
-  const navItems = isAdminAuthenticated() ? [...baseNavItems, adminNavItem] : baseNavItems;
+  const navItems = baseNavItems;
 
   const isActive = (to: string) => (to === "/" ? pathname === "/" : pathname.startsWith(to));
 

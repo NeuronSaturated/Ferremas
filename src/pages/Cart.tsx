@@ -175,8 +175,8 @@ const Cart = () => {
           </p>
         </div>
         <div className="rounded-xl border border-primary/20 bg-primary/5 px-4 py-3 text-sm text-muted-foreground">
-          <p className="font-semibold text-foreground">Checkout persistente</p>
-          <p>Tu compra se registra en la base de datos y queda visible en el panel interno.</p>
+          <p className="font-semibold text-foreground">Compra segura</p>
+          <p>Tu pedido quedará disponible en tu historial de compras.</p>
         </div>
       </div>
 

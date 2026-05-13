@@ -187,16 +187,16 @@ const Panel = () => {
         <div>
           <div className="mb-2 flex flex-wrap gap-2">
             <Badge className="bg-secondary text-secondary-foreground hover:bg-secondary">
-              Panel persistente
+              Acceso interno
             </Badge>
             <Badge variant="outline" className="gap-1">
               <Database className="h-3 w-3" />
-              Pedidos reales
+              Operaciones FERREMAS
             </Badge>
           </div>
           <h1 className="text-4xl font-extrabold">Panel de operaciones</h1>
           <p className="mt-2 text-muted-foreground">
-            Esta vista ahora consume usuarios y compras reales guardadas en SQLite.
+            Gestiona pedidos, pagos, preparación y despacho de compras.
           </p>
         </div>
         <div className="flex gap-2">
@@ -499,7 +499,7 @@ const Panel = () => {
               <ul className="space-y-3 text-sm">
                 {[
                   {
-                    title: "Base de datos SQLite local",
+                    title: "Base de datos de pedidos",
                     state: "Activa",
                     badge: "bg-success text-success-foreground",
                   },
