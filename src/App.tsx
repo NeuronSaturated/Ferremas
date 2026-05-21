@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { CartProvider } from "@/context/CartContext";
 import { AuthProvider } from "@/context/AuthContext";
+import { LanguageProvider } from "@/context/LanguageContext";
 import Layout from "@/components/Layout";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import ClientRoute from "@/components/ClientRoute";
@@ -26,32 +27,34 @@ const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <AuthProvider>
-        <CartProvider>
-          <Toaster />
-          <Sonner />
-          <BrowserRouter>
-            <Routes>
-              <Route element={<Layout />}>
-                <Route path="/" element={<Home />} />
-                <Route path="/catalogo" element={<Catalog />} />
-                <Route path="/producto/:id" element={<ProductDetail />} />
-                <Route path="/sucursales" element={<Branches />} />
-                <Route path="/sucursales/:slug" element={<BranchDetail />} />
-                <Route path="/auth" element={<Auth />} />
-                <Route path="/admin" element={<AdminLogin />} />
-                <Route element={<ClientRoute />}>
-                  <Route path="/perfil" element={<Profile />} />
-                  <Route path="/carrito" element={<Cart />} />
-                  <Route path="/checkout/resultado" element={<CheckoutResult />} />
+        <LanguageProvider>
+          <CartProvider>
+            <Toaster />
+            <Sonner />
+            <BrowserRouter>
+              <Routes>
+                <Route element={<Layout />}>
+                  <Route path="/" element={<Home />} />
+                  <Route path="/catalogo" element={<Catalog />} />
+                  <Route path="/producto/:id" element={<ProductDetail />} />
+                  <Route path="/sucursales" element={<Branches />} />
+                  <Route path="/sucursales/:slug" element={<BranchDetail />} />
+                  <Route path="/auth" element={<Auth />} />
+                  <Route path="/admin" element={<AdminLogin />} />
+                  <Route element={<ClientRoute />}>
+                    <Route path="/perfil" element={<Profile />} />
+                    <Route path="/carrito" element={<Cart />} />
+                    <Route path="/checkout/resultado" element={<CheckoutResult />} />
+                  </Route>
+                  <Route element={<ProtectedRoute />}>
+                    <Route path="/panel" element={<Panel />} />
+                  </Route>
                 </Route>
-                <Route element={<ProtectedRoute />}>
-                  <Route path="/panel" element={<Panel />} />
-                </Route>
-              </Route>
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </BrowserRouter>
-        </CartProvider>
+                <Route path="*" element={<NotFound />} />
+              </Routes>
+            </BrowserRouter>
+          </CartProvider>
+        </LanguageProvider>
       </AuthProvider>
     </TooltipProvider>
   </QueryClientProvider>

@@ -15,6 +15,10 @@ const SUPPORTED_SERIES = {
     series: "F072.CLP.BRL.N.O.D",
     label: "Real brasileno observado",
   },
+  GBP: {
+    series: "F072.CLP.GBP.N.O.D",
+    label: "Libra esterlina observada",
+  },
 };
 
 const cache = new Map();

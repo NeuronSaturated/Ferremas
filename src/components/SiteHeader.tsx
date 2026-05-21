@@ -18,6 +18,7 @@ import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { formatCLP } from "@/data/products";
 import BrandMark from "@/components/BrandMark";
 import { useProducts } from "@/lib/product-api";
+import { useLanguage } from "@/context/LanguageContext";
 
 const baseNavItems = [
   { to: "/", label: "Inicio" },
@@ -28,13 +29,18 @@ const baseNavItems = [
 const SiteHeader = () => {
   const { count } = useCart();
   const { user, signOut } = useAuth();
+  const { language, setLanguage, t } = useLanguage();
   const { products } = useProducts();
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const [q, setQ] = useState("");
   const [open, setOpen] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
-  const navItems = baseNavItems;
+  const navItems = [
+    { to: "/", label: t("home") },
+    { to: "/catalogo", label: t("catalog") },
+    { to: "/sucursales", label: t("branches") },
+  ];
 
   const isActive = (to: string) => (to === "/" ? pathname === "/" : pathname.startsWith(to));
 
@@ -94,7 +100,7 @@ const SiteHeader = () => {
                 setOpen(true);
               }}
               onFocus={() => setOpen(true)}
-              placeholder="Buscar productos, marcas, SKU..."
+              placeholder={t("search")}
               className="pl-9"
               aria-label="Buscar productos"
               autoComplete="off"
@@ -198,7 +204,7 @@ const SiteHeader = () => {
             <Button asChild variant="outline" size="sm">
               <Link to="/auth">
                 <UserIcon className="h-4 w-4" />
-                <span className="ml-2 hidden sm:inline">Ingresar</span>
+                <span className="ml-2 hidden sm:inline">{t("signIn")}</span>
               </Link>
             </Button>
           )}
@@ -206,7 +212,7 @@ const SiteHeader = () => {
           <Button asChild variant="outline" size="sm" className="relative">
             <Link to="/carrito" aria-label="Carrito">
               <ShoppingCart className="h-4 w-4" />
-              <span className="ml-2 hidden sm:inline">Carrito</span>
+              <span className="ml-2 hidden sm:inline">{t("cart")}</span>
               {count > 0 && (
                 <span className="absolute -right-2 -top-2 flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1 text-xs font-bold text-primary-foreground">
                   {count}
@@ -214,6 +220,28 @@ const SiteHeader = () => {
               )}
             </Link>
           </Button>
+
+          <div className="hidden items-center rounded-md border border-border p-0.5 lg:flex" aria-label="Idioma">
+            {[
+              { code: "es", label: "ES" },
+              { code: "en", label: "EN" },
+              { code: "pt", label: "PT" },
+            ].map((item) => (
+              <button
+                key={item.code}
+                type="button"
+                onClick={() => setLanguage(item.code as "es" | "en" | "pt")}
+                className={cn(
+                  "rounded px-2 py-1 text-xs font-bold transition-colors",
+                  language === item.code
+                    ? "bg-primary text-primary-foreground"
+                    : "text-muted-foreground hover:text-foreground"
+                )}
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
 
           <Sheet>
             <SheetTrigger asChild>
@@ -228,7 +256,7 @@ const SiteHeader = () => {
                   type="search"
                   value={q}
                   onChange={(e) => setQ(e.target.value)}
-                  placeholder="Buscar..."
+                  placeholder={t("searchShort")}
                   className="pl-9"
                 />
               </form>
@@ -265,13 +293,32 @@ const SiteHeader = () => {
                 ))}
                 {user ? (
                   <NavLink to="/perfil" className="rounded-md px-3 py-2 text-base font-medium text-foreground hover:bg-muted">
-                    Mi perfil
+                    {t("profile")}
                   </NavLink>
                 ) : (
                   <NavLink to="/auth" className="rounded-md px-3 py-2 text-base font-medium text-foreground hover:bg-muted">
-                    Ingresar / Registrarse
+                    {t("signIn")}
                   </NavLink>
                 )}
+                <div className="mt-3 flex items-center gap-2 px-3">
+                  {[
+                    { code: "es", label: "ES" },
+                    { code: "en", label: "EN" },
+                    { code: "pt", label: "PT" },
+                  ].map((item) => (
+                    <button
+                      key={item.code}
+                      type="button"
+                      onClick={() => setLanguage(item.code as "es" | "en" | "pt")}
+                      className={cn(
+                        "rounded-md border border-border px-3 py-1 text-sm font-bold",
+                        language === item.code ? "bg-primary text-primary-foreground" : "text-muted-foreground"
+                      )}
+                    >
+                      {item.label}
+                    </button>
+                  ))}
+                </div>
               </nav>
             </SheetContent>
           </Sheet>

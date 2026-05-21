@@ -66,7 +66,7 @@ const Cart = () => {
   const [processing, setProcessing] = useState(false);
   const [branch, setBranch] = useState("Santiago Centro");
   const [exchangeEnabled, setExchangeEnabled] = useState(false);
-  const [exchangeCurrency, setExchangeCurrency] = useState<"USD" | "EUR" | "BRL">("USD");
+  const [exchangeCurrency, setExchangeCurrency] = useState<"USD" | "BRL" | "GBP">("USD");
   const [exchangeResult, setExchangeResult] = useState<ExchangeConversion | null>(null);
   const [exchangeError, setExchangeError] = useState<string | null>(null);
   const [exchangeLoading, setExchangeLoading] = useState(false);
@@ -464,13 +464,13 @@ const Cart = () => {
                       <span className="text-sm font-medium">Quiero ver mi total en</span>
                       <select
                         value={exchangeCurrency}
-                        onChange={(event) => setExchangeCurrency(event.target.value as "USD" | "EUR" | "BRL")}
+                        onChange={(event) => setExchangeCurrency(event.target.value as "USD" | "BRL" | "GBP")}
                         className="flex h-9 rounded-md border border-input bg-background px-3 py-1 text-sm"
                         aria-label="Moneda extranjera"
                       >
                         <option value="USD">USD</option>
-                        <option value="EUR">EUR</option>
                         <option value="BRL">BRL</option>
+                        <option value="GBP">GBP</option>
                       </select>
                     </div>
 
