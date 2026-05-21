@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/context/AuthContext";
 import { formatCLP } from "@/data/products";
@@ -26,6 +26,7 @@ import {
   Building2,
   ShieldCheck,
   Store,
+  Globe2,
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -43,6 +44,17 @@ const branches = [
   "La Serena",
 ];
 
+type ExchangeConversion = {
+  from: string;
+  to: "CLP";
+  amount: number;
+  rate: number;
+  converted: number;
+  date: string;
+  source: string;
+  series: string;
+};
+
 const Cart = () => {
   const { items, remove, setQty, total, clear } = useCart();
   const { user, refreshUser } = useAuth();
@@ -53,9 +65,60 @@ const Cart = () => {
   const [transferOpen, setTransferOpen] = useState(false);
   const [processing, setProcessing] = useState(false);
   const [branch, setBranch] = useState("Santiago Centro");
+  const [exchangeCurrency, setExchangeCurrency] = useState<"USD" | "EUR">("USD");
+  const [foreignAmount, setForeignAmount] = useState("100");
+  const [exchangeResult, setExchangeResult] = useState<ExchangeConversion | null>(null);
+  const [exchangeError, setExchangeError] = useState<string | null>(null);
+  const [exchangeLoading, setExchangeLoading] = useState(false);
 
   const shipping = delivery === "despacho" ? 4990 : 0;
   const finalTotal = total + shipping;
+  const estimatedForeignTotal = useMemo(() => {
+    if (!exchangeResult?.rate) return null;
+    return finalTotal / exchangeResult.rate;
+  }, [exchangeResult, finalTotal]);
+
+  useEffect(() => {
+    const amount = Number(foreignAmount);
+
+    if (!Number.isFinite(amount) || amount <= 0) {
+      setExchangeResult(null);
+      setExchangeError("Ingresa un monto extranjero mayor a cero.");
+      return;
+    }
+
+    const controller = new AbortController();
+
+    const convertForeignCurrency = async () => {
+      setExchangeLoading(true);
+      setExchangeError(null);
+
+      try {
+        // El backend mantiene las credenciales del Banco Central ocultas y entrega
+        // solo el resultado necesario para el checkout: moneda extranjera -> CLP.
+        const response = await apiFetch<ExchangeConversion>(
+          `/api/exchange/convert?from=${exchangeCurrency}&amount=${amount}`,
+          { signal: controller.signal }
+        );
+        setExchangeResult(response);
+      } catch (error) {
+        if (controller.signal.aborted) return;
+        setExchangeResult(null);
+        setExchangeError(error instanceof Error ? error.message : "No se pudo consultar Banco Central.");
+      } finally {
+        if (!controller.signal.aborted) {
+          setExchangeLoading(false);
+        }
+      }
+    };
+
+    const debounce = window.setTimeout(convertForeignCurrency, 450);
+
+    return () => {
+      controller.abort();
+      window.clearTimeout(debounce);
+    };
+  }, [exchangeCurrency, foreignAmount]);
 
   const validateCheckout = () => {
     if (!user) return false;
@@ -372,6 +435,62 @@ const Cart = () => {
                 <p className="text-muted-foreground">
                   Las tarjetas ya no se procesan dentro de esta app. El cobro se realiza en
                   Webpay Plus para cumplir un flujo mas seguro y compatible con Transbank.
+                </p>
+              </div>
+
+              <div className="mb-4 rounded-lg border border-border p-4">
+                <h2 className="mb-3 flex items-center gap-2 font-semibold">
+                  <Globe2 className="h-4 w-4 text-primary" />
+                  Conversion Banco Central
+                </h2>
+                <div className="grid grid-cols-[1fr_88px] gap-2">
+                  <Input
+                    value={foreignAmount}
+                    onChange={(event) => setForeignAmount(event.target.value)}
+                    inputMode="decimal"
+                    aria-label="Monto en moneda extranjera"
+                  />
+                  <select
+                    value={exchangeCurrency}
+                    onChange={(event) => setExchangeCurrency(event.target.value as "USD" | "EUR")}
+                    className="flex h-10 rounded-md border border-input bg-background px-3 py-2 text-sm"
+                    aria-label="Moneda extranjera"
+                  >
+                    <option value="USD">USD</option>
+                    <option value="EUR">EUR</option>
+                  </select>
+                </div>
+
+                <div className="mt-3 text-sm">
+                  {exchangeLoading ? (
+                    <p className="text-muted-foreground">Consultando Banco Central...</p>
+                  ) : exchangeResult ? (
+                    <div className="space-y-1">
+                      <p className="font-semibold">
+                        {exchangeCurrency} {exchangeResult.amount.toLocaleString("es-CL")} equivale a{" "}
+                        {formatCLP(exchangeResult.converted)}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        Tasa: {formatCLP(exchangeResult.rate)} por {exchangeCurrency}. Fecha BCCh:{" "}
+                        {exchangeResult.date}.
+                      </p>
+                      {estimatedForeignTotal !== null && (
+                        <p className="text-xs text-muted-foreground">
+                          Tu total actual equivale aprox. a {exchangeCurrency}{" "}
+                          {estimatedForeignTotal.toLocaleString("es-CL", {
+                            minimumFractionDigits: 2,
+                            maximumFractionDigits: 2,
+                          })}
+                          .
+                        </p>
+                      )}
+                    </div>
+                  ) : (
+                    <p className="text-xs text-destructive">{exchangeError}</p>
+                  )}
+                </div>
+                <p className="mt-3 text-xs text-muted-foreground">
+                  Referencial para compras internacionales. El pago final se procesa en CLP por Webpay Plus.
                 </p>
               </div>
 

@@ -21,6 +21,7 @@ import {
 } from "./db.js";
 import { hashPassword, verifyPassword } from "./security.js";
 import { getWebpayTransaction, isProductionTransbank } from "./transbank.js";
+import { getExchangeRate, getSupportedExchangeCurrencies } from "./bcentral.js";
 
 const app = express();
 const port = Number(process.env.PORT || 3001);
@@ -167,6 +168,53 @@ app.get("/api/products", async (_req, res, next) => {
     res.json({ products: await getProducts() });
   } catch (error) {
     next(error);
+  }
+});
+
+app.get("/api/exchange/rate", async (req, res) => {
+  try {
+    // Endpoint usado por el frontend cuando solo necesita mostrar la tasa oficial
+    // mas reciente publicada por Banco Central.
+    const currency = String(req.query?.currency || "USD").trim().toUpperCase();
+    const rate = await getExchangeRate(currency);
+    return res.json({ rate, supported: getSupportedExchangeCurrencies() });
+  } catch (error) {
+    return res.status(error.status || 500).json({
+      message: error.message || "No se pudo obtener el tipo de cambio.",
+      supported: getSupportedExchangeCurrencies(),
+    });
+  }
+});
+
+app.get("/api/exchange/convert", async (req, res) => {
+  try {
+    // La evaluacion pide convertir moneda extranjera a moneda nacional.
+    // Por eso este endpoint recibe USD/EUR y devuelve su equivalente en CLP.
+    const from = String(req.query?.from || "USD").trim().toUpperCase();
+    const amount = Number(req.query?.amount || 0);
+
+    if (!Number.isFinite(amount) || amount <= 0) {
+      return res.status(400).json({ message: "Ingresa un monto mayor a cero." });
+    }
+
+    const rate = await getExchangeRate(from);
+    const converted = Math.round(amount * rate.rate);
+
+    return res.json({
+      from,
+      to: "CLP",
+      amount,
+      rate: rate.rate,
+      converted,
+      date: rate.date,
+      source: rate.source,
+      series: rate.series,
+    });
+  } catch (error) {
+    return res.status(error.status || 500).json({
+      message: error.message || "No se pudo convertir la moneda.",
+      supported: getSupportedExchangeCurrencies(),
+    });
   }
 });
 

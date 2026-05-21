@@ -27,6 +27,7 @@ Ecommerce fullstack para FERREMAS, con catalogo de productos, carrito, pagos Web
 - Carrito protegido por sesion.
 - Registro, login, perfil y cambio/recuperacion de contrasena.
 - Pagos con Webpay Plus y pedidos por transferencia.
+- Conversion USD/EUR a CLP usando la API BDE del Banco Central de Chile.
 - Stock persistente y descontable.
 - Historial de compras del cliente.
 - Panel interno protegido para gestion de pedidos.
@@ -67,6 +68,9 @@ TRANSBANK_ENV=integration
 TRANSBANK_COMMERCE_CODE=
 TRANSBANK_API_KEY=
 
+BCCH_USER=
+BCCH_PASS=
+
 ADMIN_USER=
 ADMIN_PASS=
 ```
@@ -105,6 +109,8 @@ BACKEND_URL=https://ferremas-backend-nh5z.onrender.com
 ALLOWED_ORIGINS=https://ferremas-ecru.vercel.app
 DATABASE_URL=postgresql://...
 TRANSBANK_ENV=integration
+BCCH_USER=
+BCCH_PASS=
 ADMIN_USER=
 ADMIN_PASS=
 ```
