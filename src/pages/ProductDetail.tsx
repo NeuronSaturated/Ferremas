@@ -151,8 +151,7 @@ const ProductDetail = () => {
                 {currencyOptions.map((option) => (
                   <DropdownMenuItem key={option.code} onClick={() => setDisplayCurrency(option.code)}>
                     <img src={option.flag} alt="" className="mr-3 h-5 w-5 rounded-full object-cover" />
-                    <span className="mr-3 w-8 font-bold">{option.code}</span>
-                    <span className="text-muted-foreground">{option.country}</span>
+                    <span className="font-bold">{option.code}</span>
                   </DropdownMenuItem>
                 ))}
               </DropdownMenuContent>
