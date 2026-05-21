@@ -406,6 +406,8 @@ const insertOrderItems = (orderId, items) => {
 export const createTransferOrder = ({ userId, total, delivery, branch, items }) => {
   const id = `ORD-${Date.now()}`;
   const date = new Date().toISOString();
+  // En transferencia el pedido queda pendiente de revision manual, pero ya se
+  // reserva stock para no vender las mismas unidades a otro cliente.
   const normalizedItems = assertAndNormalizeItems(items, { deductStock: true });
 
   insertOrderRecord({
@@ -434,6 +436,8 @@ export const createWebpayOrderDraft = ({
   webpayToken,
   sessionId,
 }) => {
+  // Webpay parte como orden pendiente: aun no se descuenta stock porque el usuario
+  // puede abandonar o Transbank puede rechazar el pago.
   const normalizedItems = assertAndNormalizeItems(items);
 
   insertOrderRecord({
@@ -484,6 +488,7 @@ export const markWebpayOrderAuthorized = ({
   const order = getOrderById(orderId);
   if (!order) return null;
   if (order.paymentStatus === "Confirmado") return order;
+  // Solo cuando Webpay confirma la autorizacion se descuentan unidades reales.
   assertAndNormalizeItems(order.items, { deductStock: true });
 
   db.prepare(

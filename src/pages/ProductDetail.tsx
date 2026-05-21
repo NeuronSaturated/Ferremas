@@ -50,6 +50,8 @@ const ProductDetail = () => {
   const activeCurrency = currencyOptions.find((option) => option.code === displayCurrency) ?? currencyOptions[0];
 
   const displayPrice = useMemo(() => {
+    // CLP es el precio real del catalogo. Las otras monedas son solo una vista
+    // referencial calculada con Banco Central; no cambian el valor de compra.
     if (!product) return "";
     if (displayCurrency === "CLP") return formatCLP(product.price);
     if (!exchangeResult?.rate) return formatCLP(product.price);

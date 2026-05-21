@@ -1,5 +1,9 @@
 const BCCH_API_URL = "https://si3.bcentral.cl/SieteRestWS/SieteRestWS.ashx";
 
+// Servicio de conversion de moneda usando la API BDE del Banco Central de Chile.
+// El frontend nunca llama directo al Banco Central: pasa por este backend para
+// mantener BCCH_USER/BCCH_PASS privadas y devolver una respuesta simple.
+
 // Codigos de series oficiales de la API BDE del Banco Central.
 // Cada valor de estas series representa pesos chilenos por 1 unidad de moneda extranjera.
 const SUPPORTED_SERIES = {
@@ -22,6 +26,8 @@ const SUPPORTED_SERIES = {
 };
 
 const cache = new Map();
+// La tasa oficial no cambia cada segundo, asi que se guarda por 1 hora para
+// acelerar carrito/productos y evitar consumir la API BDE en cada render.
 const CACHE_TTL_MS = 60 * 60 * 1000;
 
 const formatDate = (date) => date.toISOString().slice(0, 10);
@@ -95,6 +101,8 @@ export const getExchangeRate = async (currency) => {
 
   const { firstdate, lastdate } = getDateRange();
   const url = new URL(BCCH_API_URL);
+  // La API BDE funciona con parametros query. Aqui armamos una consulta GetSeries
+  // limitada a una ventana reciente para traer la ultima observacion disponible.
   url.searchParams.set("user", user);
   url.searchParams.set("pass", pass);
   url.searchParams.set("function", "GetSeries");

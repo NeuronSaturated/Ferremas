@@ -74,6 +74,8 @@ const Cart = () => {
   const shipping = delivery === "despacho" ? 4990 : 0;
   const finalTotal = total + shipping;
   const estimatedForeignTotal = useMemo(() => {
+    // La API entrega "cuantos CLP vale 1 unidad extranjera"; para mostrar el
+    // total en USD/BRL/GBP hacemos la operacion inversa sobre el total oficial.
     if (!exchangeResult?.rate) return null;
     return finalTotal / exchangeResult.rate;
   }, [exchangeResult, finalTotal]);
@@ -173,6 +175,8 @@ const Cart = () => {
     setProcessing(true);
 
     try {
+      // La pantalla no cobra directamente: solicita al backend una transaccion,
+      // luego envia al usuario a Webpay con el token_ws que responde Transbank.
       const response = await createWebpayTransaction(orderPayload);
       redirectToWebpay(response.url, response.token);
     } catch (error) {

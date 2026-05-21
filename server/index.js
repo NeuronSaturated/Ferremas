@@ -114,6 +114,9 @@ const sanitizeUserResponse = (user, token) => ({
 });
 
 const normalizeOrderPayload = async ({ items, shipping = 0, delivery, branch }) => {
+  // El carrito viene desde el navegador, por lo que no confiamos ciegamente en
+  // nombres, precios o imagenes enviados por el cliente. Se cruzan los IDs con
+  // la base de productos y el total se calcula nuevamente en el backend.
   const products = await getProducts();
   const productById = new Map(products.map((product) => [product.id, product]));
   const normalizedItems = Array.isArray(items)
@@ -173,8 +176,9 @@ app.get("/api/products", async (_req, res, next) => {
 
 app.get("/api/exchange/rate", async (req, res) => {
   try {
-    // Endpoint usado por el frontend cuando solo necesita mostrar la tasa oficial
-    // mas reciente publicada por Banco Central.
+    // Endpoint liviano para consultar la tasa oficial sin hacer una conversion.
+    // Lo dejamos separado de /convert porque algunas pantallas solo necesitan
+    // mostrar "1 USD = X CLP" como referencia.
     const currency = String(req.query?.currency || "USD").trim().toUpperCase();
     const rate = await getExchangeRate(currency);
     return res.json({ rate, supported: getSupportedExchangeCurrencies() });
@@ -188,8 +192,10 @@ app.get("/api/exchange/rate", async (req, res) => {
 
 app.get("/api/exchange/convert", async (req, res) => {
   try {
-    // La evaluacion pide convertir moneda extranjera a moneda nacional.
-    // Por eso este endpoint recibe USD/EUR y devuelve su equivalente en CLP.
+    // La evaluacion pide convertir moneda extranjera a moneda nacional usando
+    // Banco Central. Por eso el endpoint recibe una moneda externa y un monto,
+    // consulta la tasa oficial y devuelve el equivalente en pesos chilenos.
+    // Importante: esto es solo referencia visual; Webpay sigue cobrando en CLP.
     const from = String(req.query?.from || "USD").trim().toUpperCase();
     const amount = Number(req.query?.amount || 0);
 
@@ -368,6 +374,11 @@ app.post("/api/orders/transfer", requireUserSession, async (req, res) => {
 
 app.post("/api/payments/webpay/create", requireUserSession, async (req, res) => {
   try {
+    // Primer paso del flujo Webpay Plus:
+    // 1. Validamos y recalculamos el pedido en backend.
+    // 2. Creamos una transaccion en Transbank con buyOrder/sessionId/total.
+    // 3. Guardamos una orden pendiente asociada al token_ws.
+    // 4. Devolvemos url + token para que el frontend redirija al formulario Webpay.
     const payload = await normalizeOrderPayload(req.body || {});
     const orderId = `ORD-${Date.now()}`;
     const sessionId = randomUUID();
@@ -404,6 +415,10 @@ app.post("/api/payments/webpay/create", requireUserSession, async (req, res) => 
 
 app.post("/api/payments/webpay/commit", async (req, res) => {
   try {
+    // Segundo paso del flujo Webpay Plus:
+    // cuando Transbank devuelve token_ws, el frontend llama este endpoint para
+    // confirmar la transaccion. Solo si Transbank responde AUTHORIZED + code 0
+    // marcamos el pedido como pagado y descontamos stock.
     const token = String(req.body?.token_ws || req.body?.token || "");
 
     if (!token) {
@@ -453,6 +468,9 @@ app.post("/api/payments/webpay/commit", async (req, res) => {
 });
 
 app.all("/api/payments/webpay/return", (req, res) => {
+  // URL de retorno configurada al crear la transaccion. Transbank puede volver
+  // por POST o GET segun el resultado; este handler traduce esa respuesta a una
+  // ruta del frontend donde se muestra aprobado, rechazado o abortado.
   const token = req.method === "POST" ? req.body?.token_ws : req.query?.token_ws;
   const tbkToken = req.method === "POST" ? req.body?.TBK_TOKEN : req.query?.TBK_TOKEN;
   const tbkOrder =
@@ -486,6 +504,9 @@ app.post("/api/admin/login", async (req, res) => {
 });
 
 app.post("/api/chat", async (req, res) => {
+  // Chatbot liviano y deterministico para la demo: no usa IA externa ni guarda
+  // mensajes. Responde intenciones conocidas (saludo, pagos, despacho, stock)
+  // y busca productos en la misma base del catalogo para no inventar resultados.
   const message = String(req.body?.message || "").trim();
   const customerName = String(req.body?.customerName || "").trim();
   const products = await getProducts();
@@ -504,6 +525,8 @@ app.post("/api/chat", async (req, res) => {
   const hasAny = (words) => words.some((word) => rawTerms.includes(word));
 
   if (rawTerms.length <= 2 && hasAny(["hola", "buenas", "buenos", "hey"])) {
+    // Si el usuario esta logueado, el frontend manda su nombre para que el saludo
+    // sea mas cercano. Si no existe, se responde de forma generica.
     const greetingName = customerName || "cliente";
 
     return res.json({
