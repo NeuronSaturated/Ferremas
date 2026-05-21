@@ -1,4 +1,4 @@
-import { FormEvent, useEffect, useRef, useState } from "react";
+﻿import { FormEvent, useEffect, useRef, useState } from "react";
 import { MessageCircle, Send, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,7 +30,7 @@ const ChatWidget = () => {
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       role: "assistant",
-      text: "Hola, soy el asistente FERREMAS. Pregúntame por productos, pagos, retiro o despacho.",
+      text: "Hola, soy tu asistente virtual. Preguntame por productos, pagos, retiro o despacho.",
     },
   ]);
 
@@ -83,7 +83,7 @@ const ChatWidget = () => {
           <header className="flex items-center justify-between border-b border-border px-4 py-3">
             <div>
               <p className="font-semibold">Asistente FERREMAS</p>
-              <p className="text-xs text-muted-foreground">Catálogo, stock y pagos</p>
+              <p className="text-xs text-muted-foreground">CatÃ¡logo, stock y pagos</p>
             </div>
             <Button variant="ghost" size="icon" onClick={() => setOpen(false)} aria-label="Cerrar chat">
               <X className="h-4 w-4" />
@@ -115,7 +115,7 @@ const ChatWidget = () => {
                           <span className="block truncate font-medium">{product.name}</span>
                           <span className="block text-xs text-muted-foreground">
                             {message.showStock
-                              ? `${formatCLP(product.price)} · Stock ${product.stock}`
+                              ? `${formatCLP(product.price)} Â· Stock ${product.stock}`
                               : formatCLP(product.price)}
                           </span>
                         </span>
@@ -152,3 +152,4 @@ const ChatWidget = () => {
 };
 
 export default ChatWidget;
+

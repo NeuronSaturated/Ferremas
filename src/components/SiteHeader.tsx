@@ -37,9 +37,9 @@ const SiteHeader = () => {
     { to: "/sucursales", label: t("branches") },
   ];
   const languageOptions = [
-    { code: "es", label: "ES", name: "Espanol" },
+    { code: "es", label: "ES", name: "Español" },
     { code: "en", label: "EN", name: "English" },
-    { code: "pt", label: "PT", name: "Portugues" },
+    { code: "pt", label: "PT", name: "Português" },
   ] as const;
   const activeLanguage = languageOptions.find((item) => item.code === language) ?? languageOptions[0];
 
