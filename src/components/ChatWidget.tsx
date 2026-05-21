@@ -6,6 +6,7 @@ import { apiFetch } from "@/lib/api";
 import { formatCLP, type Product } from "@/data/products";
 import { fetchProducts } from "@/lib/product-api";
 import { Link } from "react-router-dom";
+import { useAuth } from "@/context/AuthContext";
 
 type ChatMessage = {
   role: "user" | "assistant";
@@ -21,6 +22,7 @@ const hydrateProducts = async (matches: Array<Omit<Product, "image"> & { imageKe
 };
 
 const ChatWidget = () => {
+  const { user } = useAuth();
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -54,7 +56,7 @@ const ChatWidget = () => {
         showStock?: boolean;
       }>("/api/chat", {
         method: "POST",
-        body: JSON.stringify({ message: text }),
+        body: JSON.stringify({ message: text, customerName: user?.firstName }),
       });
       const products = await hydrateProducts(response.products);
       setMessages((prev) => [

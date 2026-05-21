@@ -487,6 +487,7 @@ app.post("/api/admin/login", async (req, res) => {
 
 app.post("/api/chat", async (req, res) => {
   const message = String(req.body?.message || "").trim();
+  const customerName = String(req.body?.customerName || "").trim();
   const products = await getProducts();
 
   if (!message) {
@@ -503,9 +504,10 @@ app.post("/api/chat", async (req, res) => {
   const hasAny = (words) => words.some((word) => rawTerms.includes(word));
 
   if (rawTerms.length <= 2 && hasAny(["hola", "buenas", "buenos", "hey"])) {
+    const greetingName = customerName || "cliente";
+
     return res.json({
-      reply:
-        "Hola, soy el asistente de FERREMAS. Puedo ayudarte a encontrar productos, comparar precios, revisar stock, medios de pago, retiro y despacho.",
+      reply: `Hola, ${greetingName}. Soy tu asistente virtual. Puedo ayudarte a encontrar productos, comparar precios, revisar stock, medios de pago, retiro y despacho.`,
       products: [],
       showStock: false,
     });

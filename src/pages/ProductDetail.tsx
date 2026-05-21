@@ -30,10 +30,10 @@ type ExchangeConversion = {
 };
 
 const currencyOptions = [
-  { code: "CLP", country: "CL", flag: "\u{1F1E8}\u{1F1F1}", label: "Chile" },
-  { code: "USD", country: "US", flag: "\u{1F1FA}\u{1F1F8}", label: "Estados Unidos" },
-  { code: "BRL", country: "BR", flag: "\u{1F1E7}\u{1F1F7}", label: "Brasil" },
-  { code: "GBP", country: "GB", flag: "\u{1F1EC}\u{1F1E7}", label: "Reino Unido" },
+  { code: "CLP", country: "CL", flag: "/flags/chile.svg", label: "Chile" },
+  { code: "USD", country: "US", flag: "/flags/estados-unidos.svg", label: "Estados Unidos" },
+  { code: "BRL", country: "BR", flag: "/flags/brasil.svg", label: "Brasil" },
+  { code: "GBP", country: "GB", flag: "/flags/reino-unido.svg", label: "Reino Unido" },
 ] as const;
 
 const ProductDetail = () => {
@@ -142,7 +142,7 @@ const ProductDetail = () => {
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" className="h-11 gap-2 px-3">
-                  <span className="text-base">{activeCurrency.flag}</span>
+                  <img src={activeCurrency.flag} alt="" className="h-5 w-5 rounded-full object-cover" />
                   <span className="font-bold">{activeCurrency.country}</span>
                   <ChevronDown className="h-4 w-4" />
                 </Button>
@@ -150,7 +150,7 @@ const ProductDetail = () => {
               <DropdownMenuContent align="end" className="w-52">
                 {currencyOptions.map((option) => (
                   <DropdownMenuItem key={option.code} onClick={() => setDisplayCurrency(option.code)}>
-                    <span className="mr-3 text-base">{option.flag}</span>
+                    <img src={option.flag} alt="" className="mr-3 h-5 w-5 rounded-full object-cover" />
                     <span className="mr-2 w-7 font-bold">{option.country}</span>
                     <span className="text-muted-foreground">{option.code}</span>
                   </DropdownMenuItem>
