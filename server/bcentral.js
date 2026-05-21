@@ -11,6 +11,10 @@ const SUPPORTED_SERIES = {
     series: "F072.CLP.EUR.N.O.D",
     label: "Euro observado",
   },
+  BRL: {
+    series: "F072.CLP.BRL.N.O.D",
+    label: "Real brasileno observado",
+  },
 };
 
 const cache = new Map();

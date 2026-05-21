@@ -66,7 +66,7 @@ const Cart = () => {
   const [processing, setProcessing] = useState(false);
   const [branch, setBranch] = useState("Santiago Centro");
   const [exchangeEnabled, setExchangeEnabled] = useState(false);
-  const [exchangeCurrency, setExchangeCurrency] = useState<"USD" | "EUR">("USD");
+  const [exchangeCurrency, setExchangeCurrency] = useState<"USD" | "EUR" | "BRL">("USD");
   const [exchangeResult, setExchangeResult] = useState<ExchangeConversion | null>(null);
   const [exchangeError, setExchangeError] = useState<string | null>(null);
   const [exchangeLoading, setExchangeLoading] = useState(false);
@@ -352,7 +352,7 @@ const Cart = () => {
             )}
           </div>
 
-          <aside className="space-y-4">
+          <aside className="space-y-4 lg:sticky lg:top-24 lg:max-h-[calc(100vh-7rem)] lg:overflow-y-auto lg:pr-2">
             <Card className="p-6">
               <h2 className="mb-4 font-semibold">Entrega</h2>
               <RadioGroup
@@ -464,12 +464,13 @@ const Cart = () => {
                       <span className="text-sm font-medium">Quiero ver mi total en</span>
                       <select
                         value={exchangeCurrency}
-                        onChange={(event) => setExchangeCurrency(event.target.value as "USD" | "EUR")}
+                        onChange={(event) => setExchangeCurrency(event.target.value as "USD" | "EUR" | "BRL")}
                         className="flex h-9 rounded-md border border-input bg-background px-3 py-1 text-sm"
                         aria-label="Moneda extranjera"
                       >
                         <option value="USD">USD</option>
                         <option value="EUR">EUR</option>
+                        <option value="BRL">BRL</option>
                       </select>
                     </div>
 

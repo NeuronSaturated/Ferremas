@@ -27,7 +27,7 @@ Ecommerce fullstack para FERREMAS, con catalogo de productos, carrito, pagos Web
 - Carrito protegido por sesion.
 - Registro, login, perfil y cambio/recuperacion de contrasena.
 - Pagos con Webpay Plus y pedidos por transferencia.
-- Conversion USD/EUR a CLP usando la API BDE del Banco Central de Chile.
+- Conversion USD/EUR/BRL a CLP usando la API BDE del Banco Central de Chile.
 - Stock persistente y descontable.
 - Historial de compras del cliente.
 - Panel interno protegido para gestion de pedidos.
