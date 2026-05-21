@@ -65,8 +65,8 @@ const Cart = () => {
   const [transferOpen, setTransferOpen] = useState(false);
   const [processing, setProcessing] = useState(false);
   const [branch, setBranch] = useState("Santiago Centro");
+  const [exchangeEnabled, setExchangeEnabled] = useState(false);
   const [exchangeCurrency, setExchangeCurrency] = useState<"USD" | "EUR">("USD");
-  const [foreignAmount, setForeignAmount] = useState("100");
   const [exchangeResult, setExchangeResult] = useState<ExchangeConversion | null>(null);
   const [exchangeError, setExchangeError] = useState<string | null>(null);
   const [exchangeLoading, setExchangeLoading] = useState(false);
@@ -79,11 +79,9 @@ const Cart = () => {
   }, [exchangeResult, finalTotal]);
 
   useEffect(() => {
-    const amount = Number(foreignAmount);
-
-    if (!Number.isFinite(amount) || amount <= 0) {
+    if (!exchangeEnabled) {
       setExchangeResult(null);
-      setExchangeError("Ingresa un monto extranjero mayor a cero.");
+      setExchangeError(null);
       return;
     }
 
@@ -95,9 +93,10 @@ const Cart = () => {
 
       try {
         // El backend mantiene las credenciales del Banco Central ocultas y entrega
-        // solo el resultado necesario para el checkout: moneda extranjera -> CLP.
+        // el valor oficial de 1 USD/EUR en CLP. Con esa tasa mostramos el total
+        // estimado en moneda extranjera sin cambiar el cobro real de Webpay.
         const response = await apiFetch<ExchangeConversion>(
-          `/api/exchange/convert?from=${exchangeCurrency}&amount=${amount}`,
+          `/api/exchange/convert?from=${exchangeCurrency}&amount=1`,
           { signal: controller.signal }
         );
         setExchangeResult(response);
@@ -118,7 +117,7 @@ const Cart = () => {
       controller.abort();
       window.clearTimeout(debounce);
     };
-  }, [exchangeCurrency, foreignAmount]);
+  }, [exchangeCurrency, exchangeEnabled]);
 
   const validateCheckout = () => {
     if (!user) return false;
@@ -439,58 +438,69 @@ const Cart = () => {
               </div>
 
               <div className="mb-4 rounded-lg border border-border p-4">
-                <h2 className="mb-3 flex items-center gap-2 font-semibold">
-                  <Globe2 className="h-4 w-4 text-primary" />
-                  Conversion Banco Central
-                </h2>
-                <div className="grid grid-cols-[1fr_88px] gap-2">
-                  <Input
-                    value={foreignAmount}
-                    onChange={(event) => setForeignAmount(event.target.value)}
-                    inputMode="decimal"
-                    aria-label="Monto en moneda extranjera"
-                  />
-                  <select
-                    value={exchangeCurrency}
-                    onChange={(event) => setExchangeCurrency(event.target.value as "USD" | "EUR")}
-                    className="flex h-10 rounded-md border border-input bg-background px-3 py-2 text-sm"
-                    aria-label="Moneda extranjera"
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <h2 className="flex items-center gap-2 font-semibold">
+                      <Globe2 className="h-4 w-4 text-primary" />
+                      Compra internacional
+                    </h2>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      Muestra una referencia en moneda extranjera usando Banco Central.
+                    </p>
+                  </div>
+                  <Button
+                    type="button"
+                    variant={exchangeEnabled ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setExchangeEnabled((current) => !current)}
                   >
-                    <option value="USD">USD</option>
-                    <option value="EUR">EUR</option>
-                  </select>
+                    {exchangeEnabled ? "Ocultar" : "Ver total"}
+                  </Button>
                 </div>
 
-                <div className="mt-3 text-sm">
-                  {exchangeLoading ? (
-                    <p className="text-muted-foreground">Consultando Banco Central...</p>
-                  ) : exchangeResult ? (
-                    <div className="space-y-1">
-                      <p className="font-semibold">
-                        {exchangeCurrency} {exchangeResult.amount.toLocaleString("es-CL")} equivale a{" "}
-                        {formatCLP(exchangeResult.converted)}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        Tasa: {formatCLP(exchangeResult.rate)} por {exchangeCurrency}. Fecha BCCh:{" "}
-                        {exchangeResult.date}.
-                      </p>
-                      {estimatedForeignTotal !== null && (
-                        <p className="text-xs text-muted-foreground">
-                          Tu total actual equivale aprox. a {exchangeCurrency}{" "}
-                          {estimatedForeignTotal.toLocaleString("es-CL", {
-                            minimumFractionDigits: 2,
-                            maximumFractionDigits: 2,
-                          })}
-                          .
-                        </p>
+                {exchangeEnabled && (
+                  <div className="mt-4 rounded-md bg-muted/40 p-3">
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="text-sm font-medium">Quiero ver mi total en</span>
+                      <select
+                        value={exchangeCurrency}
+                        onChange={(event) => setExchangeCurrency(event.target.value as "USD" | "EUR")}
+                        className="flex h-9 rounded-md border border-input bg-background px-3 py-1 text-sm"
+                        aria-label="Moneda extranjera"
+                      >
+                        <option value="USD">USD</option>
+                        <option value="EUR">EUR</option>
+                      </select>
+                    </div>
+
+                    <div className="mt-3 text-sm">
+                      {exchangeLoading ? (
+                        <p className="text-muted-foreground">Consultando Banco Central...</p>
+                      ) : exchangeResult && estimatedForeignTotal !== null ? (
+                        <div className="space-y-1">
+                          <p className="text-xs text-muted-foreground">Total oficial a pagar</p>
+                          <p className="text-lg font-extrabold">{formatCLP(finalTotal)} CLP</p>
+                          <p className="font-semibold text-primary">
+                            Referencia: {exchangeCurrency}{" "}
+                            {estimatedForeignTotal.toLocaleString("es-CL", {
+                              minimumFractionDigits: 2,
+                              maximumFractionDigits: 2,
+                            })}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            1 {exchangeCurrency} = {formatCLP(exchangeResult.rate)}. Fecha BCCh:{" "}
+                            {exchangeResult.date}.
+                          </p>
+                        </div>
+                      ) : (
+                        <p className="text-xs text-destructive">{exchangeError}</p>
                       )}
                     </div>
-                  ) : (
-                    <p className="text-xs text-destructive">{exchangeError}</p>
-                  )}
-                </div>
+                  </div>
+                )}
+
                 <p className="mt-3 text-xs text-muted-foreground">
-                  Referencial para compras internacionales. El pago final se procesa en CLP por Webpay Plus.
+                  Webpay Plus procesa el pago en pesos chilenos. La moneda extranjera es solo una referencia.
                 </p>
               </div>
 
