@@ -4,8 +4,14 @@ import { formatCLP } from "@/data/products";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { useCart } from "@/context/CartContext";
-import { ArrowLeft, ShoppingCart, Package, Truck, ShieldCheck } from "lucide-react";
+import { ArrowLeft, ShoppingCart, Package, Truck, ShieldCheck, ChevronDown } from "lucide-react";
 import { useProducts } from "@/lib/product-api";
 import { apiFetch } from "@/lib/api";
 import { useLanguage } from "@/context/LanguageContext";
@@ -24,10 +30,10 @@ type ExchangeConversion = {
 };
 
 const currencyOptions = [
-  { code: "CLP", flag: "🇨🇱", label: "Chile" },
-  { code: "USD", flag: "🇺🇸", label: "Estados Unidos" },
-  { code: "BRL", flag: "🇧🇷", label: "Brasil" },
-  { code: "GBP", flag: "🇬🇧", label: "Reino Unido" },
+  { code: "CLP", country: "CL", flag: "\u{1F1E8}\u{1F1F1}", label: "Chile" },
+  { code: "USD", country: "US", flag: "\u{1F1FA}\u{1F1F8}", label: "Estados Unidos" },
+  { code: "BRL", country: "BR", flag: "\u{1F1E7}\u{1F1F7}", label: "Brasil" },
+  { code: "GBP", country: "GB", flag: "\u{1F1EC}\u{1F1E7}", label: "Reino Unido" },
 ] as const;
 
 const ProductDetail = () => {
@@ -41,6 +47,7 @@ const ProductDetail = () => {
   const [exchangeResult, setExchangeResult] = useState<ExchangeConversion | null>(null);
   const [exchangeError, setExchangeError] = useState<string | null>(null);
   const [exchangeLoading, setExchangeLoading] = useState(false);
+  const activeCurrency = currencyOptions.find((option) => option.code === displayCurrency) ?? currencyOptions[0];
 
   const displayPrice = useMemo(() => {
     if (!product) return "";
@@ -132,22 +139,24 @@ const ProductDetail = () => {
             <span className="text-sm text-muted-foreground">
               {displayCurrency === "CLP" ? t("vatIncluded") : t("referenceRate")}
             </span>
-            <div className="flex rounded-lg border border-border p-1" aria-label="Moneda de referencia">
-              {currencyOptions.map((option) => (
-                <button
-                  key={option.code}
-                  type="button"
-                  onClick={() => setDisplayCurrency(option.code)}
-                  className={`flex h-9 w-10 items-center justify-center rounded-md text-lg transition-colors ${
-                    displayCurrency === option.code ? "bg-primary text-primary-foreground" : "hover:bg-muted"
-                  }`}
-                  aria-label={`Ver precio en ${option.label}`}
-                  title={option.label}
-                >
-                  {option.flag}
-                </button>
-              ))}
-            </div>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="h-11 gap-2 px-3">
+                  <span className="text-base">{activeCurrency.flag}</span>
+                  <span className="font-bold">{activeCurrency.country}</span>
+                  <ChevronDown className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-52">
+                {currencyOptions.map((option) => (
+                  <DropdownMenuItem key={option.code} onClick={() => setDisplayCurrency(option.code)}>
+                    <span className="mr-3 text-base">{option.flag}</span>
+                    <span className="mr-2 w-7 font-bold">{option.country}</span>
+                    <span className="text-muted-foreground">{option.code}</span>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
 
           {displayCurrency !== "CLP" && (

@@ -1,9 +1,8 @@
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { Link, NavLink, useLocation, useNavigate } from "react-router-dom";
-import { ShoppingCart, Menu, Search, User as UserIcon, LogOut, Package, ChevronDown } from "lucide-react";
+import { ShoppingCart, Menu, Search, User as UserIcon, LogOut, Package, ChevronDown, Globe2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { useCart } from "@/context/CartContext";
-import { useAuth } from "@/context/AuthContext";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import {
   DropdownMenu,
@@ -13,18 +12,13 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useCart } from "@/context/CartContext";
+import { useAuth } from "@/context/AuthContext";
+import { useLanguage } from "@/context/LanguageContext";
 import { cn } from "@/lib/utils";
-import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { formatCLP } from "@/data/products";
 import BrandMark from "@/components/BrandMark";
 import { useProducts } from "@/lib/product-api";
-import { useLanguage } from "@/context/LanguageContext";
-
-const baseNavItems = [
-  { to: "/", label: "Inicio" },
-  { to: "/catalogo", label: "Catálogo" },
-  { to: "/sucursales", label: "Sucursales" },
-];
 
 const SiteHeader = () => {
   const { count } = useCart();
@@ -36,11 +30,18 @@ const SiteHeader = () => {
   const [q, setQ] = useState("");
   const [open, setOpen] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
+
   const navItems = [
     { to: "/", label: t("home") },
     { to: "/catalogo", label: t("catalog") },
     { to: "/sucursales", label: t("branches") },
   ];
+  const languageOptions = [
+    { code: "es", label: "ES", name: "Espanol" },
+    { code: "en", label: "EN", name: "English" },
+    { code: "pt", label: "PT", name: "Portugues" },
+  ] as const;
+  const activeLanguage = languageOptions.find((item) => item.code === language) ?? languageOptions[0];
 
   const isActive = (to: string) => (to === "/" ? pathname === "/" : pathname.startsWith(to));
 
@@ -52,7 +53,6 @@ const SiteHeader = () => {
       .slice(0, 6);
   }, [products, q]);
 
-  // Cerrar el dropdown al hacer click fuera
   useEffect(() => {
     const onClick = (e: MouseEvent) => {
       if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
@@ -81,6 +81,26 @@ const SiteHeader = () => {
     navigate("/");
   };
 
+  const LanguageMenu = ({ mobile = false }: { mobile?: boolean }) => (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="outline" size="sm" className={cn("gap-2 px-2", mobile ? "w-full justify-start" : "hidden lg:inline-flex")}>
+          <Globe2 className="h-4 w-4" />
+          <span className="font-bold">{activeLanguage.label}</span>
+          <ChevronDown className="h-3 w-3" />
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent align="end" className="w-40">
+        {languageOptions.map((item) => (
+          <DropdownMenuItem key={item.code} onClick={() => setLanguage(item.code)}>
+            <span className="mr-2 w-6 font-bold">{item.label}</span>
+            <span>{item.name}</span>
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+
   return (
     <header className="sticky top-0 z-50 w-full border-b border-border/60 bg-background/85 backdrop-blur supports-[backdrop-filter]:bg-background/70">
       <div className="container flex h-16 items-center justify-between gap-4">
@@ -88,8 +108,7 @@ const SiteHeader = () => {
           <BrandMark />
         </Link>
 
-        {/* Buscador con sugerencias */}
-        <div ref={wrapperRef} className="relative hidden flex-1 max-w-md lg:block">
+        <div ref={wrapperRef} className="relative hidden max-w-md flex-1 lg:block">
           <form onSubmit={onSearch} className="relative">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
@@ -118,21 +137,14 @@ const SiteHeader = () => {
                           onClick={() => goToProduct(p.id)}
                           className="flex w-full items-center gap-3 px-3 py-2 text-left transition-colors hover:bg-muted"
                         >
-                          <img
-                            src={p.image}
-                            alt={p.name}
-                            loading="lazy"
-                            className="h-10 w-10 shrink-0 rounded object-cover"
-                          />
+                          <img src={p.image} alt={p.name} loading="lazy" className="h-10 w-10 shrink-0 rounded object-cover" />
                           <div className="min-w-0 flex-1">
                             <p className="truncate text-sm font-medium">{p.name}</p>
                             <p className="truncate text-xs text-muted-foreground">
                               {p.brand} · {p.category}
                             </p>
                           </div>
-                          <span className="shrink-0 text-sm font-semibold text-primary">
-                            {formatCLP(p.price)}
-                          </span>
+                          <span className="shrink-0 text-sm font-semibold text-primary">{formatCLP(p.price)}</span>
                         </button>
                       </li>
                     ))}
@@ -146,9 +158,7 @@ const SiteHeader = () => {
                   </button>
                 </>
               ) : (
-                <p className="px-3 py-4 text-center text-sm text-muted-foreground">
-                  Sin resultados para "{q.trim()}"
-                </p>
+                <p className="px-3 py-4 text-center text-sm text-muted-foreground">Sin resultados para "{q.trim()}"</p>
               )}
             </div>
           )}
@@ -170,7 +180,6 @@ const SiteHeader = () => {
         </nav>
 
         <div className="flex items-center gap-2">
-          {/* Menú de usuario */}
           {user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -178,25 +187,27 @@ const SiteHeader = () => {
                   <span className="flex h-6 w-6 items-center justify-center rounded-full gradient-primary text-[10px] font-bold text-primary-foreground">
                     {user.firstName.charAt(0).toUpperCase()}
                   </span>
-                  <span className="hidden sm:inline max-w-24 truncate">{user.firstName}</span>
+                  <span className="hidden max-w-24 truncate sm:inline">{user.firstName}</span>
                   <ChevronDown className="h-3 w-3" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
                 <DropdownMenuLabel className="font-normal">
-                  <p className="font-semibold">{user.firstName} {user.lastName}</p>
+                  <p className="font-semibold">
+                    {user.firstName} {user.lastName}
+                  </p>
                   <p className="text-xs text-muted-foreground">{user.email}</p>
                 </DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => navigate("/perfil")}>
-                  <UserIcon className="mr-2 h-4 w-4" /> Mi perfil
+                  <UserIcon className="mr-2 h-4 w-4" /> {t("profile")}
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => navigate("/perfil?tab=orders")}>
-                  <Package className="mr-2 h-4 w-4" /> Mis compras
+                  <Package className="mr-2 h-4 w-4" /> {t("orders")}
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleSignOut}>
-                  <LogOut className="mr-2 h-4 w-4" /> Cerrar sesión
+                  <LogOut className="mr-2 h-4 w-4" /> {t("signOut")}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -221,54 +232,24 @@ const SiteHeader = () => {
             </Link>
           </Button>
 
-          <div className="hidden items-center rounded-md border border-border p-0.5 lg:flex" aria-label="Idioma">
-            {[
-              { code: "es", label: "ES" },
-              { code: "en", label: "EN" },
-              { code: "pt", label: "PT" },
-            ].map((item) => (
-              <button
-                key={item.code}
-                type="button"
-                onClick={() => setLanguage(item.code as "es" | "en" | "pt")}
-                className={cn(
-                  "rounded px-2 py-1 text-xs font-bold transition-colors",
-                  language === item.code
-                    ? "bg-primary text-primary-foreground"
-                    : "text-muted-foreground hover:text-foreground"
-                )}
-              >
-                {item.label}
-              </button>
-            ))}
-          </div>
+          <LanguageMenu />
 
           <Sheet>
             <SheetTrigger asChild>
-              <Button variant="ghost" size="icon" className="md:hidden" aria-label="Menú">
+              <Button variant="ghost" size="icon" className="md:hidden" aria-label="Menu">
                 <Menu className="h-5 w-5" />
               </Button>
             </SheetTrigger>
             <SheetContent side="right" className="w-72">
               <form onSubmit={onSearch} className="relative mt-8">
                 <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  type="search"
-                  value={q}
-                  onChange={(e) => setQ(e.target.value)}
-                  placeholder={t("searchShort")}
-                  className="pl-9"
-                />
+                <Input type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder={t("searchShort")} className="pl-9" />
               </form>
               {q.trim() && suggestions.length > 0 && (
                 <ul className="mt-2 max-h-64 overflow-auto rounded-md border border-border">
                   {suggestions.map((p) => (
                     <li key={p.id}>
-                      <button
-                        type="button"
-                        onClick={() => goToProduct(p.id)}
-                        className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm hover:bg-muted"
-                      >
+                      <button type="button" onClick={() => goToProduct(p.id)} className="flex w-full items-center gap-2 px-3 py-2 text-left text-sm hover:bg-muted">
                         <img src={p.image} alt={p.name} className="h-8 w-8 rounded object-cover" />
                         <span className="truncate">{p.name}</span>
                       </button>
@@ -282,10 +263,7 @@ const SiteHeader = () => {
                     key={n.to}
                     to={n.to}
                     className={({ isActive }) =>
-                      cn(
-                        "rounded-md px-3 py-2 text-base font-medium",
-                        isActive ? "bg-secondary text-secondary-foreground" : "text-foreground hover:bg-muted"
-                      )
+                      cn("rounded-md px-3 py-2 text-base font-medium", isActive ? "bg-secondary text-secondary-foreground" : "text-foreground hover:bg-muted")
                     }
                   >
                     {n.label}
@@ -300,24 +278,8 @@ const SiteHeader = () => {
                     {t("signIn")}
                   </NavLink>
                 )}
-                <div className="mt-3 flex items-center gap-2 px-3">
-                  {[
-                    { code: "es", label: "ES" },
-                    { code: "en", label: "EN" },
-                    { code: "pt", label: "PT" },
-                  ].map((item) => (
-                    <button
-                      key={item.code}
-                      type="button"
-                      onClick={() => setLanguage(item.code as "es" | "en" | "pt")}
-                      className={cn(
-                        "rounded-md border border-border px-3 py-1 text-sm font-bold",
-                        language === item.code ? "bg-primary text-primary-foreground" : "text-muted-foreground"
-                      )}
-                    >
-                      {item.label}
-                    </button>
-                  ))}
+                <div className="px-3 pt-2">
+                  <LanguageMenu mobile />
                 </div>
               </nav>
             </SheetContent>
