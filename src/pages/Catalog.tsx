@@ -10,6 +10,7 @@ const cats = ["Todos", "Herramientas", "Construcción", "Pinturas", "Eléctrico"
 const PAGE_SIZE = 8;
 
 const Catalog = () => {
+  // Aqui el catalogo combina productos del backend, filtros por URL y paginacion.
   const { products } = useProducts();
   const [params, setParams] = useSearchParams();
   const initial = params.get("cat") ?? "Todos";
@@ -18,7 +19,7 @@ const Catalog = () => {
   const [q, setQ] = useState(initialQ);
   const [page, setPage] = useState(1);
 
-  // Sincroniza filtros con la URL, especialmente cuando se busca desde el header.
+  // Aqui se sincronizan filtros con la URL, especialmente al buscar desde header.
   useEffect(() => {
     setQ(params.get("q") ?? "");
     setCat(params.get("cat") ?? "Todos");
@@ -34,7 +35,7 @@ const Catalog = () => {
 
   const totalPages = Math.max(1, Math.ceil(list.length / PAGE_SIZE));
 
-  // Reset a página 1 cuando cambian filtros
+  // En esta parte se vuelve a pagina 1 cuando cambian filtros.
   useEffect(() => {
     setPage(1);
   }, [cat, q]);
@@ -95,7 +96,7 @@ const Catalog = () => {
             ))}
           </div>
 
-          {/* Paginación */}
+          {/* Aqui se muestra paginacion para no cargar demasiadas tarjetas juntas. */}
           <div className="mt-12 flex flex-col items-center gap-4">
             <p className="text-sm text-muted-foreground">
               Mostrando {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, list.length)} de {list.length}

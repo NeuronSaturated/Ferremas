@@ -37,6 +37,7 @@ const currencyOptions = [
 ] as const;
 
 const ProductDetail = () => {
+  // Aqui se muestra la ficha de producto: precio, stock, descripcion y compra.
   const { id } = useParams();
   const navigate = useNavigate();
   const { add } = useCart();
@@ -50,8 +51,8 @@ const ProductDetail = () => {
   const activeCurrency = currencyOptions.find((option) => option.code === displayCurrency) ?? currencyOptions[0];
 
   const displayPrice = useMemo(() => {
-    // CLP es el precio real del catalogo. Las otras monedas son solo una vista
-    // referencial calculada con Banco Central; no cambian el valor de compra.
+    // Aqui CLP es el precio real del catalogo. Las otras monedas son solo una
+    // vista referencial calculada con Banco Central; no cambian el valor de compra.
     if (!product) return "";
     if (displayCurrency === "CLP") return formatCLP(product.price);
     if (!exchangeResult?.rate) return formatCLP(product.price);
@@ -78,8 +79,8 @@ const ProductDetail = () => {
       setExchangeError(null);
 
       try {
-        // El producto conserva su precio base en CLP. La API BDE solo aporta
-        // la tasa oficial para mostrar la misma cifra referencial en otra moneda.
+        // En esta parte el producto conserva su precio base en CLP. La API BDE
+        // solo aporta la tasa oficial para mostrar la referencia en otra moneda.
         const response = await apiFetch<ExchangeConversion>(
           `/api/exchange/convert?from=${displayCurrency}&amount=1`,
           { signal: controller.signal }

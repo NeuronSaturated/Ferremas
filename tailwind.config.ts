@@ -2,11 +2,14 @@ import type { Config } from "tailwindcss";
 import tailwindcssAnimate from "tailwindcss-animate";
 
 export default {
+  // Aqui Tailwind queda configurado para usar modo oscuro por clase.
   darkMode: ["class"],
+  // En esta parte Tailwind sabe que archivos debe escanear para generar clases.
   content: ["./pages/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}", "./app/**/*.{ts,tsx}", "./src/**/*.{ts,tsx}"],
   prefix: "",
   theme: {
     container: {
+      // Aca se define el contenedor central usado por las paginas principales.
       center: true,
       padding: "2rem",
       screens: {
@@ -15,6 +18,7 @@ export default {
     },
     extend: {
       colors: {
+        // Aqui los colores leen variables CSS del design system en index.css.
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
@@ -68,11 +72,13 @@ export default {
         },
       },
       borderRadius: {
+        // En esta parte los radios dependen de --radius para mantener consistencia.
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
       },
       keyframes: {
+        // Aqui se declaran animaciones usadas por componentes tipo accordion.
         "accordion-down": {
           from: {
             height: "0",
@@ -96,5 +102,6 @@ export default {
       },
     },
   },
+  // Aca se activa el plugin de animaciones de Tailwind usado por shadcn/ui.
   plugins: [tailwindcssAnimate],
 } satisfies Config;

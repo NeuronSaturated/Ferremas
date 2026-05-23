@@ -7,6 +7,7 @@ import { useCart } from "@/context/CartContext";
 import { Link, useNavigate } from "react-router-dom";
 
 const ProductCard = ({ product }: { product: Product }) => {
+  // Aqui cada producto del catalogo se muestra como tarjeta clickeable.
   const { add } = useCart();
   const navigate = useNavigate();
 
@@ -48,6 +49,8 @@ const ProductCard = ({ product }: { product: Product }) => {
             size="sm"
             disabled={product.stock === 0}
             onClick={(e) => {
+              // En esta parte se detiene el click de la tarjeta para agregar al
+              // carrito sin navegar al detalle del producto.
               e.stopPropagation();
               add(product);
             }}

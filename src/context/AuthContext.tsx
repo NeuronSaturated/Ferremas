@@ -90,6 +90,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   const refreshUser = async () => {
+    // Aqui se rehidrata la sesion cuando la pagina se recarga. Si hay token
+    // local, el backend devuelve el usuario actualizado con sus compras.
     const token = getSessionToken();
 
     if (!token) {
@@ -119,6 +121,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signUp: AuthCtx["signUp"] = async (data) => {
     try {
+      // Aca se registra un cliente y se guarda su token para dejarlo logueado.
       const response = await apiFetch<AuthResponse>("/api/auth/signup", {
         method: "POST",
         body: JSON.stringify(data),
@@ -135,6 +138,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const signIn: AuthCtx["signIn"] = async (email, password) => {
     try {
+      // Aqui el frontend pide al backend validar email/contrasena y crear sesion.
       const response = await apiFetch<AuthResponse>("/api/auth/signin", {
         method: "POST",
         body: JSON.stringify({ email, password }),
@@ -160,7 +164,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         });
       }
     } catch {
-      // Si el token ya vencio o no existe, igual limpiamos el estado local.
+      // En esta parte, si el token ya vencio, igual se limpia el estado local.
     } finally {
       clearSessionToken();
       setUser(null);
@@ -173,6 +177,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (!token) return false;
 
     try {
+      // Aqui el perfil se actualiza en backend y vuelve ya persistido.
       const response = await apiFetch<{ user: User }>("/api/auth/profile", {
         method: "PATCH",
         token,
@@ -192,6 +197,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (!token) return false;
 
     try {
+      // Aca se cambia la contrasena validando primero la clave actual.
       const response = await apiFetch<{ user: User }>("/api/auth/password", {
         method: "PATCH",
         token,
@@ -208,6 +214,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const recoverPassword: AuthCtx["recoverPassword"] = async (email) => {
     try {
+      // Aqui la demo simula recuperacion. En produccion esta parte enviaria
+      // correo con token seguro y expiracion.
       const response = await apiFetch<{ message: string }>("/api/auth/recover", {
         method: "POST",
         body: JSON.stringify({ email }),

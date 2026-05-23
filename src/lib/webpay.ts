@@ -1,8 +1,8 @@
 import { apiFetch, getSessionToken } from "@/lib/api";
 
-// Helpers del frontend para Webpay Plus. Mantienen las llamadas Transbank
-// concentradas en un solo archivo, aunque las credenciales y la logica real
-// siempre viven en el backend.
+// Aqui se concentran los helpers frontend de Webpay Plus.
+// En esta parte solo se pide iniciar o confirmar el pago; las credenciales,
+// validacion del monto y comunicacion real con Transbank viven en el backend.
 
 type CreateWebpayResponse = {
   token: string;
@@ -35,8 +35,8 @@ export const createWebpayTransaction = async (payload: {
   delivery: "retiro" | "despacho";
   branch: string;
 }) =>
-  // Crea la transaccion en el backend y recibe la URL/token_ws que exige Webpay.
-  // El total se vuelve a validar en el servidor, asi el cliente no decide el monto.
+  // Aqui se crea la transaccion en el backend y se recibe url + token_ws.
+  // Aca el cliente no decide el monto final, porque el servidor lo recalcula.
   apiFetch<CreateWebpayResponse>("/api/payments/webpay/create", {
     method: "POST",
     token: getSessionToken(),
@@ -44,16 +44,16 @@ export const createWebpayTransaction = async (payload: {
   });
 
 export const commitWebpayTransaction = async (token: string) =>
-  // Confirma el token_ws despues del retorno de Transbank. El backend revisa si
-  // fue autorizado antes de marcar el pedido como pagado.
+  // En esta parte se confirma token_ws despues del retorno de Transbank.
+  // El backend revisa si fue autorizado antes de marcar el pedido como pagado.
   apiFetch<CommitWebpayResponse>("/api/payments/webpay/commit", {
     method: "POST",
     body: JSON.stringify({ token }),
   });
 
 export const redirectToWebpay = (url: string, token: string) => {
-  // Webpay Plus espera recibir token_ws por POST, no como query param. Por eso
-  // se crea un formulario temporal y se envia automaticamente al usuario.
+  // Webpay Plus espera token_ws por POST, no por query param. Aqui se crea un
+  // formulario temporal para enviar al usuario al portal oficial de pago.
   const form = document.createElement("form");
   form.method = "POST";
   form.action = url;

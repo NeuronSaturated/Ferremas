@@ -1,5 +1,8 @@
 export const usingPostgres = Boolean(process.env.DATABASE_URL);
 
+// Aqui se decide que motor de datos usara la aplicacion.
+// En Render se usa PostgreSQL cuando existe DATABASE_URL; en desarrollo local
+// puede caer a SQLite para probar sin configurar Supabase.
 const adapter = usingPostgres
   ? await import("./db-postgres.js")
   : await import("./db-sqlite.js");

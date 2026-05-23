@@ -23,6 +23,8 @@ import CheckoutResult from "./pages/CheckoutResult.tsx";
 
 const queryClient = new QueryClient();
 
+// Aqui se arma la aplicacion completa: proveedores globales, rutas publicas,
+// rutas de cliente y rutas protegidas para el panel interno.
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
@@ -34,6 +36,7 @@ const App = () => (
             <BrowserRouter>
               <Routes>
                 <Route element={<Layout />}>
+                  {/* En esta parte quedan las rutas publicas de la tienda. */}
                   <Route path="/" element={<Home />} />
                   <Route path="/catalogo" element={<Catalog />} />
                   <Route path="/producto/:id" element={<ProductDetail />} />
@@ -41,11 +44,13 @@ const App = () => (
                   <Route path="/sucursales/:slug" element={<BranchDetail />} />
                   <Route path="/auth" element={<Auth />} />
                   <Route path="/admin" element={<AdminLogin />} />
+                  {/* Aca se agrupan paginas que exigen cliente logueado. */}
                   <Route element={<ClientRoute />}>
                     <Route path="/perfil" element={<Profile />} />
                     <Route path="/carrito" element={<Cart />} />
                     <Route path="/checkout/resultado" element={<CheckoutResult />} />
                   </Route>
+                  {/* Aqui queda el panel interno, visible solo con token admin. */}
                   <Route element={<ProtectedRoute />}>
                     <Route path="/panel" element={<Panel />} />
                   </Route>

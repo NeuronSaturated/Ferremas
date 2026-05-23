@@ -75,6 +75,8 @@ const StatCard = ({ icon: Icon, label, value, sub }: StatCardProps) => (
 );
 
 const Panel = () => {
+  // Aqui vive el panel interno para personal FERREMAS: pedidos, filtros,
+  // indicadores, stock bajo y cambio de estados.
   const navigate = useNavigate();
   const { products } = useProducts();
   const [orders, setOrders] = useState<AdminOrder[]>([]);
@@ -86,6 +88,8 @@ const Panel = () => {
   const [selectedOrder, setSelectedOrder] = useState<AdminOrder | null>(null);
 
   const loadOrders = useCallback(async (showSpinner = false) => {
+    // En esta parte el panel carga pedidos usando token admin. Si el token no
+    // sirve, se limpia la sesion y se vuelve al login interno.
     const token = getAdminToken();
     if (!token) {
       navigate("/admin", { replace: true });
@@ -116,6 +120,7 @@ const Panel = () => {
   }, [loadOrders]);
 
   const updateOrder = async (id: string, patch: Partial<Pick<AdminOrder, "status" | "paymentStatus">>, msg: string) => {
+    // Aqui un admin cambia el estado operativo o de pago de un pedido.
     const token = getAdminToken();
     if (!token) return;
 
@@ -143,7 +148,7 @@ const Panel = () => {
         });
       }
     } catch {
-      // Si falla el logout remoto, igual limpiamos sesion local.
+      // Aca, si falla el logout remoto, igual se limpia la sesion local.
     } finally {
       clearAdminToken();
       toast.success("Sesion cerrada");
@@ -156,6 +161,7 @@ const Panel = () => {
     [orders]
   );
   const displayedOrders = useMemo(
+    // En esta parte se aplican filtros combinados sin pedir de nuevo al backend.
     () =>
       orders.filter(
         (order) =>

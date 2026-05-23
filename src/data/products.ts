@@ -6,7 +6,8 @@ import helmet from "@/assets/product-helmet.jpg";
 import grinder from "@/assets/product-grinder.jpg";
 import cable from "@/assets/product-cable.jpg";
 
-// Imágenes específicas por producto
+// Aqui se importan imagenes especificas por producto para que el catalogo se vea
+// consistente y no dependa de URLs externas lentas.
 import saw from "@/assets/product-saw.jpg";
 import screwdriverElectric from "@/assets/product-screwdriver-electric.jpg";
 import toolbox from "@/assets/product-toolbox.jpg";
@@ -68,7 +69,7 @@ export type Product = {
 };
 
 const seed: Omit<Product, "id" | "sku">[] = [
-  // Herramientas
+  // Aqui comienza la familia de herramientas.
   { name: "Taladro Percutor Inalámbrico 18V", brand: "Bosch", category: "Herramientas", price: 89990, stock: 24, image: drill, description: "Taladro percutor profesional de 18V con batería de litio, ideal para trabajos pesados en madera, metal y concreto." },
   { name: "Martillo Carpintero 16oz", brand: "Stanley", category: "Herramientas", price: 12490, stock: 87, image: hammer, description: "Martillo de uña con mango de madera ergonómico, ideal para clavar y extraer clavos." },
   { name: "Esmeril Angular 4½\" 850W", brand: "Makita", category: "Herramientas", price: 49990, stock: 18, image: grinder, description: "Esmeril angular profesional para corte y desbaste, motor 850W, mango antivibración." },
@@ -82,7 +83,7 @@ const seed: Omit<Product, "id" | "sku">[] = [
   { name: "Lijadora Orbital 240W", brand: "Bosch", category: "Herramientas", price: 44990, stock: 19, image: sander, description: "Lijadora orbital con sistema de aspiración y velocidad variable." },
   { name: "Llave de Tubo 14\"", brand: "Stanley", category: "Herramientas", price: 18990, stock: 41, image: pipewrench, description: "Llave Stillson de acero forjado para fontanería y trabajos pesados." },
 
-  // Construcción
+  // En esta parte se agrupan materiales de construccion y obra gruesa.
   { name: "Set de Tornillos Inox 200pz", brand: "Stanley", category: "Construcción", price: 7990, stock: 156, image: screws, description: "Surtido de tornillos y tuercas en acero inoxidable de distintas medidas." },
   { name: "Cemento Gris 25kg", brand: "Sika", category: "Construcción", price: 5990, stock: 200, image: cement, description: "Cemento de uso general para hormigones, morteros y estucos." },
   { name: "Saco de Arena Fina 25kg", brand: "FERREMAS", category: "Construcción", price: 2990, stock: 180, image: sand, description: "Arena seleccionada y tamizada para mezclas de mortero." },
@@ -94,7 +95,7 @@ const seed: Omit<Product, "id" | "sku">[] = [
   { name: "Yeso 25kg", brand: "Sika", category: "Construcción", price: 4990, stock: 95, image: plaster, description: "Yeso para terminaciones interiores, fácil aplicación y rápido secado." },
   { name: "Cerámica Blanca 45x45 (caja)", brand: "FERREMAS", category: "Construcción", price: 14990, stock: 60, image: tile, description: "Cerámica esmaltada para piso y muro, rendimiento 1.62m² por caja." },
 
-  // Pinturas
+  // Aca se agrupan pinturas, diluyentes y accesorios de pintado.
   { name: "Esmalte Sintético Blanco 1 Galón", brand: "Sika", category: "Pinturas", price: 18990, stock: 42, image: enamel, description: "Pintura esmalte de alta cobertura, acabado brillante, resistente a la intemperie." },
   { name: "Pintura Látex Interior 5 Gal", brand: "Sika", category: "Pinturas", price: 34990, stock: 21, image: latexBucket, description: "Pintura látex lavable de alta cobertura para interiores, terminación mate." },
   { name: "Látex Exterior 1 Galón", brand: "Sika", category: "Pinturas", price: 22990, stock: 38, image: paint, description: "Pintura acrílica exterior con protección UV y antihongos." },
@@ -107,7 +108,7 @@ const seed: Omit<Product, "id" | "sku">[] = [
   { name: "Bandeja para Pintura Plástica", brand: "FERREMAS", category: "Pinturas", price: 2990, stock: 110, image: tray, description: "Bandeja resistente compatible con rodillos hasta 25cm." },
   { name: "Spray Multicolor 400ml", brand: "Sika", category: "Pinturas", price: 5490, stock: 160, image: spray, description: "Aerosol de secado rápido para múltiples superficies, varios colores disponibles." },
 
-  // Eléctrico
+  // Aqui se agrupan productos electricos para instalaciones y mantencion.
   { name: "Cable Eléctrico THHN 2.5mm 25m", brand: "Bosch", category: "Eléctrico", price: 22490, stock: 38, image: cable, description: "Rollo de cable eléctrico THHN para instalaciones residenciales e industriales." },
   { name: "Cable Eléctrico THHN 4mm 100m", brand: "Bosch", category: "Eléctrico", price: 79990, stock: 14, image: cable, description: "Cable de cobre con aislación termoplástica, ideal para instalaciones fijas." },
   { name: "Interruptor Simple 9/12", brand: "FERREMAS", category: "Eléctrico", price: 1990, stock: 220, image: switchProd, description: "Interruptor de empotrar con placa blanca, 10A 250V." },
@@ -120,7 +121,7 @@ const seed: Omit<Product, "id" | "sku">[] = [
   { name: "Alargador 5m con 4 Tomas", brand: "FERREMAS", category: "Eléctrico", price: 8990, stock: 72, image: extension, description: "Extensión eléctrica con interruptor y protección contra sobrecargas." },
   { name: "Multiherramienta Detector", brand: "Bosch", category: "Eléctrico", price: 49990, stock: 16, image: detector, description: "Detector de cables, metales y vigas en muros con pantalla LCD." },
 
-  // Seguridad
+  // En esta parte se agrupan elementos de proteccion personal y seguridad.
   { name: "Casco de Seguridad + Antiparras", brand: "FERREMAS", category: "Seguridad", price: 9490, stock: 65, image: helmet, description: "Kit de protección personal certificado, casco amarillo y antiparras claras." },
   { name: "Guantes de Cuero Reforzado", brand: "FERREMAS", category: "Seguridad", price: 4990, stock: 180, image: gloves, description: "Guantes de cuero vacuno con refuerzo en palma, talla universal." },
   { name: "Mascarilla N95 (pack 10)", brand: "FERREMAS", category: "Seguridad", price: 12990, stock: 90, image: mask, description: "Respirador con filtro 95% de partículas, certificación NIOSH." },
@@ -134,10 +135,12 @@ const seed: Omit<Product, "id" | "sku">[] = [
 ];
 
 export const products: Product[] = seed.map((p, i) => ({
+  // Aqui se generan IDs y SKUs consistentes para la demo a partir del orden.
   ...p,
   id: `p${i + 1}`,
   sku: `FM-${String(i + 1).padStart(3, "0")}`,
 }));
 
 export const formatCLP = (n: number) =>
+  // Aca se formatea cualquier precio como moneda chilena sin decimales.
   new Intl.NumberFormat("es-CL", { style: "currency", currency: "CLP", maximumFractionDigits: 0 }).format(n);

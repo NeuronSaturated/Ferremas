@@ -1,5 +1,7 @@
 const apiBaseUrl = (import.meta.env.VITE_API_URL ?? "").replace(/\/$/, "");
 
+// Aqui se decide si las llamadas van a un backend remoto o al mismo origen.
+// En Vercel normalmente VITE_API_URL apunta al servicio de Render.
 const buildApiUrl = (path: string) => (apiBaseUrl ? `${apiBaseUrl}${path}` : path);
 
 export const SESSION_TOKEN_KEY = "ferremas_session_token";
@@ -14,6 +16,7 @@ export const setAdminToken = (token: string) => localStorage.setItem(ADMIN_TOKEN
 export const clearAdminToken = () => localStorage.removeItem(ADMIN_TOKEN_KEY);
 
 const getHeaders = (token?: string | null, isJson = true) => {
+  // En esta parte se preparan headers comunes: JSON y Authorization si hay token.
   const headers = new Headers();
 
   if (isJson) {
@@ -31,6 +34,8 @@ export const apiFetch = async <T>(
   path: string,
   options: RequestInit & { token?: string | null; isJson?: boolean } = {}
 ) => {
+  // Aqui se estandariza fetch para todo el proyecto. Aca se busca que los errores
+  // del backend se conviertan en Error(message) y las paginas no repitan codigo.
   const response = await fetch(buildApiUrl(path), {
     ...options,
     headers: getHeaders(options.token, options.isJson ?? true),

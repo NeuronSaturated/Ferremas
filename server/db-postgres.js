@@ -416,9 +416,9 @@ const createOrder = async ({ id, userId, total, status, delivery, payment, payme
 
   try {
     await client.query("BEGIN");
-    // Transferencia descuenta stock inmediatamente porque el pedido queda creado.
-    // Webpay se guarda primero como borrador pendiente y el stock se descuenta
-    // despues, cuando Transbank confirma que el pago fue autorizado.
+    // Aqui se define cuando se descuenta stock. Transferencia reserva unidades
+    // al crear el pedido; Webpay espera la autorizacion de Transbank antes de
+    // descontar, porque el usuario podria abandonar o ser rechazado.
     const normalizedItems = await assertAndNormalizeItems(client, items, {
       deductStock: payment !== "Webpay Plus (Transbank)",
     });
@@ -526,8 +526,8 @@ export const markWebpayOrderAuthorized = async ({
     }
 
     if (rows[0].payment_status !== "Confirmado") {
-      // Evita descontar dos veces si el usuario refresca la pantalla de resultado
-      // o si Transbank reintenta el retorno con el mismo token_ws.
+      // En esta parte se evita descontar dos veces si el usuario refresca la
+      // pantalla de resultado o si Transbank reintenta el retorno.
       const order = await getOrderById(orderId);
       await assertAndNormalizeItems(client, order.items, { deductStock: true });
     }

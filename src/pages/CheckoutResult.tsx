@@ -9,6 +9,7 @@ import { commitWebpayTransaction } from "@/lib/webpay";
 import { AlertCircle, CheckCircle2, LoaderCircle, ReceiptText } from "lucide-react";
 
 const CheckoutResult = () => {
+  // Aqui se muestra el resultado despues de volver desde Webpay/Transbank.
   const { user, refreshUser } = useAuth();
   const { clear } = useCart();
   const [searchParams] = useSearchParams();
@@ -22,6 +23,8 @@ const CheckoutResult = () => {
   const processedRef = useRef(false);
 
   useEffect(() => {
+    // En esta parte se evita confirmar dos veces el mismo token si React vuelve
+    // a ejecutar el efecto o si el usuario refresca muy rapido.
     if (!user || processedRef.current) return;
     processedRef.current = true;
 
@@ -37,6 +40,8 @@ const CheckoutResult = () => {
 
     const finalizePayment = async () => {
       try {
+        // Aqui el frontend pide al backend confirmar token_ws con Transbank.
+        // Si Webpay autoriza, se limpia el carrito y se refrescan las compras.
         const response = await commitWebpayTransaction(token);
         await refreshUser();
         clear();

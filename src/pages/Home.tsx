@@ -13,11 +13,12 @@ const categories = [
 ];
 
 const Home = () => {
+  // Aqui se arma la portada comercial de FERREMAS con categorias y destacados.
   const { products } = useProducts();
 
   return (
   <>
-    {/* HERO */}
+    {/* Aqui se muestra el primer impacto visual de la tienda. */}
     <section className="relative isolate overflow-hidden">
       <img src={hero} alt="Bodega FERREMAS" width={1920} height={1088} className="absolute inset-0 -z-10 h-full w-full object-cover" />
       <div className="absolute inset-0 -z-10 gradient-hero" />
@@ -47,7 +48,7 @@ const Home = () => {
       </div>
     </section>
 
-    {/* BENEFITS */}
+    {/* En esta parte se resumen beneficios de compra y entrega. */}
     <section className="border-y border-border bg-card">
       <div className="container grid gap-6 py-10 md:grid-cols-4">
         {[
@@ -69,7 +70,7 @@ const Home = () => {
       </div>
     </section>
 
-    {/* CATEGORIES */}
+    {/* Aca se muestran accesos rapidos por categoria. */}
     <section className="container py-16">
       <div className="mb-8 flex items-end justify-between">
         <div>
@@ -93,7 +94,7 @@ const Home = () => {
       </div>
     </section>
 
-    {/* PRODUCTS */}
+    {/* Aqui se muestran productos destacados desde el catalogo cargado. */}
     <section className="container py-8">
       <div className="mb-8 flex items-end justify-between">
         <div>
@@ -111,7 +112,7 @@ const Home = () => {
       </div>
     </section>
 
-    {/* CTA */}
+    {/* En esta parte se invita a clientes profesionales o constructoras. */}
     <section className="container my-16">
       <div className="overflow-hidden rounded-2xl gradient-dark p-10 text-secondary-foreground md:p-16">
         <div className="grid items-center gap-8 md:grid-cols-2">

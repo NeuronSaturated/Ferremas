@@ -12,6 +12,8 @@ import concepcion from "@/assets/branch-concepcion.jpg";
 import laserena from "@/assets/branch-laserena.jpg";
 
 const branches = [
+  // Aqui se guardan datos estaticos de sucursales para la demo.
+  // En un proyecto mayor esta parte podria venir desde la base de datos.
   {
     slug: "santiago-centro",
     name: "Santiago Centro",
@@ -106,6 +108,8 @@ const branches = [
 ];
 
 const getMapsUrls = (address: string) => {
+  // En esta parte se crean URLs de Google Maps: una para abrir ruta y otra para
+  // mostrar el mapa embebido dentro de la pagina de detalle.
   const encodedAddress = encodeURIComponent(address);
 
   return {
@@ -115,6 +119,7 @@ const getMapsUrls = (address: string) => {
 };
 
 const Branches = () => (
+  // Aqui se listan las sucursales como tarjetas navegables.
   <section className="container py-12">
     <header className="max-w-2xl">
       <h1 className="text-4xl font-extrabold">Sucursales FERREMAS</h1>
@@ -170,6 +175,7 @@ const Branches = () => (
 );
 
 export const BranchDetail = () => {
+  // Aca se muestra una sucursal individual con datos, servicios y mapa.
   const { slug } = useParams();
   const branch = branches.find((item) => item.slug === slug);
 

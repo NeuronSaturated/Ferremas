@@ -1,8 +1,8 @@
 import TransbankSdk from "transbank-sdk";
 
-// Este modulo centraliza toda la configuracion de Transbank/Webpay Plus.
-// Asi el resto del backend solo pide "una transaccion Webpay" y no necesita
-// saber si estamos usando credenciales de integracion o credenciales reales.
+// Aqui se centraliza toda la configuracion de Transbank/Webpay Plus.
+// En esta parte el backend decide si trabajara con el ambiente de integracion
+// o con produccion, sin mezclar esa logica con las rutas de pago.
 const {
   Environment,
   IntegrationApiKeys,
@@ -12,9 +12,8 @@ const {
 } = TransbankSdk;
 
 const getEnvironment = () =>
-  // En desarrollo/demo usamos el ambiente Integration de Transbank, que permite
-  // probar con las tarjetas oficiales de la documentacion. En Render/Vercel se
-  // cambia a Production definiendo TRANSBANK_ENV=production.
+  // Aqui se usa Integration por defecto para pruebas con tarjetas oficiales.
+  // Ahora, si TRANSBANK_ENV queda como production, el SDK apunta al ambiente real.
   process.env.TRANSBANK_ENV?.toLowerCase() === "production"
     ? Environment.Production
     : Environment.Integration;
@@ -23,9 +22,8 @@ const getOptions = () => {
   const environment = getEnvironment();
 
   if (environment === Environment.Production) {
-    // En produccion estas credenciales pertenecen al comercio real y deben vivir
-    // solo como variables de entorno del backend. Nunca deben enviarse al frontend
-    // ni quedar escritas en el repositorio.
+    // En esta parte se leen las credenciales reales del comercio. Aca se busca
+    // que el codigo nunca exponga la API key al navegador ni al repositorio.
     const commerceCode = process.env.TRANSBANK_COMMERCE_CODE;
     const apiKey = process.env.TRANSBANK_API_KEY;
 
@@ -38,8 +36,8 @@ const getOptions = () => {
     return new Options(commerceCode, apiKey, environment);
   }
 
-  // Credenciales oficiales de integracion: sirven para pruebas academicas/locales.
-  // No procesan dinero real y son las que Transbank documenta para Webpay Plus.
+  // Aqui quedan las credenciales oficiales de integracion. Sirven para demo,
+  // pruebas academicas y flujo Webpay sin mover dinero real.
   return new Options(
     IntegrationCommerceCodes.WEBPAY_PLUS,
     IntegrationApiKeys.WEBPAY,

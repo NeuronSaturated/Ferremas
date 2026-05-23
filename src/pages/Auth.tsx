@@ -11,6 +11,7 @@ import { UserPlus, LogIn, Wrench, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 
 const Auth = () => {
+  // Aqui se maneja inicio de sesion, registro y recuperacion simulada.
   const { signIn, signUp, recoverPassword } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
@@ -30,6 +31,7 @@ const Auth = () => {
   const [phone, setPhone] = useState("");
 
   const onLogin = async (e: FormEvent) => {
+    // En esta parte se autentica al cliente y luego vuelve a la ruta solicitada.
     e.preventDefault();
     setSubmitting(true);
     try {
@@ -42,6 +44,7 @@ const Auth = () => {
   };
 
   const onRegister = async (e: FormEvent) => {
+    // Aqui se validan RUT, telefono y contrasena antes de crear la cuenta.
     e.preventDefault();
     if (!isValidRut(rut)) {
       toast.error("RUT invalido");
@@ -73,6 +76,7 @@ const Auth = () => {
   };
 
   const onRecover = async (e: FormEvent) => {
+    // Aca se dispara el flujo demo de recuperacion de contrasena.
     e.preventDefault();
     setSubmitting(true);
     try {

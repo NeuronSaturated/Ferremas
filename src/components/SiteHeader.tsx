@@ -21,6 +21,7 @@ import BrandMark from "@/components/BrandMark";
 import { useProducts } from "@/lib/product-api";
 
 const SiteHeader = () => {
+  // Aqui vive la barra superior: buscador, navegacion, usuario, carrito e idioma.
   const { count } = useCart();
   const { user, signOut } = useAuth();
   const { language, setLanguage, t } = useLanguage();
@@ -46,6 +47,7 @@ const SiteHeader = () => {
   const isActive = (to: string) => (to === "/" ? pathname === "/" : pathname.startsWith(to));
 
   const suggestions = useMemo(() => {
+    // En esta parte se calculan sugerencias rapidas sin salir de la pagina.
     const term = q.trim().toLowerCase();
     if (!term) return [];
     return products
@@ -54,6 +56,7 @@ const SiteHeader = () => {
   }, [products, q]);
 
   useEffect(() => {
+    // Aca se cierra el dropdown de busqueda cuando el usuario hace clic afuera.
     const onClick = (e: MouseEvent) => {
       if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
         setOpen(false);
@@ -64,6 +67,8 @@ const SiteHeader = () => {
   }, []);
 
   const onSearch = (e: FormEvent) => {
+    // Aqui la busqueda navega al catalogo usando query params para que la pagina
+    // pueda reconstruir el filtro desde la URL.
     e.preventDefault();
     const term = q.trim();
     setOpen(false);

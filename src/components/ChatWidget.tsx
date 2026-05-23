@@ -16,9 +16,9 @@ type ChatMessage = {
 };
 
 const hydrateProducts = async (matches: Array<Omit<Product, "image"> & { imageKey: string }>) => {
-  // El backend responde productos sin importar imagenes importadas por Vite.
-  // Aqui los hidratamos con el catalogo del frontend para mostrar tarjetas bonitas
-  // dentro del chat sin duplicar rutas de assets en el servidor.
+  // Aqui el backend responde productos sin depender de imagenes importadas por Vite.
+  // En esta parte se hidratan con el catalogo del frontend para mostrar tarjetas
+  // bonitas dentro del chat sin duplicar rutas de assets en el servidor.
   const products = await fetchProducts();
   const byId = new Map(products.map((product) => [product.id, product]));
   return matches.map((product) => byId.get(product.id)).filter(Boolean) as Product[];
@@ -59,8 +59,8 @@ const ChatWidget = () => {
         showStock?: boolean;
       }>("/api/chat", {
         method: "POST",
-        // Enviamos el nombre solo para personalizar saludos. El asistente no
-        // persiste conversaciones ni usa este dato para tomar decisiones sensibles.
+        // Aqui se envia el nombre solo para personalizar saludos. El asistente no
+        // persiste conversaciones ni usa este dato para decisiones sensibles.
         body: JSON.stringify({ message: text, customerName: user?.firstName }),
       });
       const products = await hydrateProducts(response.products);

@@ -56,6 +56,7 @@ type ExchangeConversion = {
 };
 
 const Cart = () => {
+  // Aqui se completa el checkout: entrega, sucursal, pago, resumen y conversion.
   const { items, remove, setQty, total, clear } = useCart();
   const { user, refreshUser } = useAuth();
   const navigate = useNavigate();
@@ -74,8 +75,8 @@ const Cart = () => {
   const shipping = delivery === "despacho" ? 4990 : 0;
   const finalTotal = total + shipping;
   const estimatedForeignTotal = useMemo(() => {
-    // La API entrega "cuantos CLP vale 1 unidad extranjera"; para mostrar el
-    // total en USD/BRL/GBP hacemos la operacion inversa sobre el total oficial.
+    // Aqui la API entrega "cuantos CLP vale 1 unidad extranjera"; para mostrar
+    // el total en USD/BRL/GBP se hace la operacion inversa sobre el total oficial.
     if (!exchangeResult?.rate) return null;
     return finalTotal / exchangeResult.rate;
   }, [exchangeResult, finalTotal]);
@@ -94,9 +95,9 @@ const Cart = () => {
       setExchangeError(null);
 
       try {
-        // El backend mantiene las credenciales del Banco Central ocultas y entrega
-        // el valor oficial de 1 USD/EUR en CLP. Con esa tasa mostramos el total
-        // estimado en moneda extranjera sin cambiar el cobro real de Webpay.
+        // En esta parte el backend mantiene las credenciales del Banco Central
+        // ocultas y entrega el valor oficial de 1 moneda extranjera en CLP.
+        // Aca solo se muestra referencia: Webpay cobra el total real en CLP.
         const response = await apiFetch<ExchangeConversion>(
           `/api/exchange/convert?from=${exchangeCurrency}&amount=1`,
           { signal: controller.signal }
@@ -175,8 +176,8 @@ const Cart = () => {
     setProcessing(true);
 
     try {
-      // La pantalla no cobra directamente: solicita al backend una transaccion,
-      // luego envia al usuario a Webpay con el token_ws que responde Transbank.
+      // Aqui la pantalla no cobra directamente. Primero solicita al backend una
+      // transaccion y luego envia al usuario a Webpay con el token_ws de Transbank.
       const response = await createWebpayTransaction(orderPayload);
       redirectToWebpay(response.url, response.token);
     } catch (error) {

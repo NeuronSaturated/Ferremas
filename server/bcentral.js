@@ -1,10 +1,10 @@
 const BCCH_API_URL = "https://si3.bcentral.cl/SieteRestWS/SieteRestWS.ashx";
 
-// Servicio de conversion de moneda usando la API BDE del Banco Central de Chile.
-// El frontend nunca llama directo al Banco Central: pasa por este backend para
-// mantener BCCH_USER/BCCH_PASS privadas y devolver una respuesta simple.
+// Aqui vive la integracion con la API BDE del Banco Central de Chile.
+// En esta parte se busca convertir monedas extranjeras a pesos chilenos usando
+// datos oficiales, pero sin exponer BCCH_USER ni BCCH_PASS en el frontend.
 
-// Codigos de series oficiales de la API BDE del Banco Central.
+// Aca se declaran los codigos de series oficiales de la API BDE.
 // Cada valor de estas series representa pesos chilenos por 1 unidad de moneda extranjera.
 const SUPPORTED_SERIES = {
   USD: {
@@ -26,8 +26,8 @@ const SUPPORTED_SERIES = {
 };
 
 const cache = new Map();
-// La tasa oficial no cambia cada segundo, asi que se guarda por 1 hora para
-// acelerar carrito/productos y evitar consumir la API BDE en cada render.
+// Aqui se cachea la tasa por 1 hora. La tasa oficial no cambia cada segundo,
+// entonces esta parte evita llamar al Banco Central en cada render.
 const CACHE_TTL_MS = 60 * 60 * 1000;
 
 const formatDate = (date) => date.toISOString().slice(0, 10);
@@ -39,8 +39,8 @@ const parseBcchNumber = (value) => {
 };
 
 const getDateRange = () => {
-  // Se consulta una ventana de 14 dias porque las series no siempre publican datos
-  // durante fines de semana o feriados. Luego se toma la observacion valida mas reciente.
+  // Aqui se consulta una ventana de 14 dias porque las series no siempre publican
+  // datos durante fines de semana o feriados. Luego se toma el dato mas reciente.
   const last = new Date();
   const first = new Date(last);
   first.setDate(first.getDate() - 14);
@@ -52,8 +52,8 @@ const getDateRange = () => {
 };
 
 const readLatestValidObservation = (payload) => {
-  // La respuesta de Banco Central llega como un arreglo cronologico de observaciones.
-  // Recorremos desde el final para usar el dato oficial disponible mas reciente.
+  // En esta parte la respuesta del Banco Central se revisa desde el final,
+  // porque ahi suele venir la observacion oficial disponible mas reciente.
   const observations = Array.isArray(payload?.Series?.Obs) ? payload.Series.Obs : [];
   const latest = [...observations]
     .reverse()
@@ -86,8 +86,8 @@ export const getExchangeRate = async (currency) => {
   const pass = process.env.BCCH_PASS;
 
   if (!user || !pass) {
-    // La API BDE requiere credenciales. Se fuerzan por variables de entorno para
-    // no exponer usuario/clave en frontend, repositorio ni README.
+    // Aca se exige que la API BDE tenga credenciales por variables de entorno.
+    // Asi el usuario y clave no quedan en frontend, repositorio ni README.
     const error = new Error("Faltan BCCH_USER y BCCH_PASS para consultar la API del Banco Central.");
     error.status = 503;
     throw error;
@@ -95,14 +95,14 @@ export const getExchangeRate = async (currency) => {
 
   const cached = cache.get(normalizedCurrency);
   if (cached && Date.now() - cached.cachedAt < CACHE_TTL_MS) {
-    // Cache corto para no llamar al Banco Central en cada render del carrito.
+    // Aqui se retorna el cache cuando aun esta vigente.
     return cached;
   }
 
   const { firstdate, lastdate } = getDateRange();
   const url = new URL(BCCH_API_URL);
-  // La API BDE funciona con parametros query. Aqui armamos una consulta GetSeries
-  // limitada a una ventana reciente para traer la ultima observacion disponible.
+  // En esta parte se arma la consulta GetSeries con parametros query. Aca se
+  // pide solo una ventana reciente para traer la ultima observacion disponible.
   url.searchParams.set("user", user);
   url.searchParams.set("pass", pass);
   url.searchParams.set("function", "GetSeries");

@@ -19,6 +19,7 @@ const Ctx = createContext<CartCtx | null>(null);
 const CART_KEY = "ferremas_cart";
 
 const loadCart = (): CartItem[] => {
+  // Aqui se recupera el carrito desde localStorage para no perderlo al recargar.
   try {
     const raw = localStorage.getItem(CART_KEY);
     if (!raw) return [];
@@ -34,10 +35,13 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   const [items, setItems] = useState<CartItem[]>(loadCart);
 
   useEffect(() => {
+    // En esta parte se mantiene una copia local del carrito mientras hay sesion.
     localStorage.setItem(CART_KEY, JSON.stringify(items));
   }, [items]);
 
   useEffect(() => {
+    // Aca se evita que quede el numero del carrito despues de cerrar sesion.
+    // Si no hay usuario, el carrito se limpia para no mostrar compras ajenas.
     if (!loading && !user && items.length > 0) {
       setItems([]);
       localStorage.removeItem(CART_KEY);
@@ -45,6 +49,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
   }, [items.length, loading, user]);
 
   const add = (p: Product) => {
+    // Aqui se valida que solo clientes logueados puedan agregar productos.
     if (!user) {
       toast.error("Inicia sesión para agregar productos al carrito");
       return;
@@ -56,6 +61,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     }
 
     setItems((prev) => {
+      // En esta parte se respeta el stock real del producto antes de sumar unidades.
       const e = prev.find((i) => i.id === p.id);
       if (e) {
         if (e.qty >= p.stock) {

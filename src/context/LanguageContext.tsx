@@ -3,6 +3,9 @@ import { createContext, ReactNode, useContext, useEffect, useMemo, useState } fr
 type Language = "es" | "en" | "pt";
 
 const labels = {
+  // Aqui se guardan traducciones manuales para la interfaz principal.
+  // Aca no se usa Google Translate porque una API externa agregaria credenciales,
+  // costo y dependencia; para la demo basta con textos controlados.
   es: {
     home: "Inicio",
     catalog: "Catalogo",
@@ -110,16 +113,19 @@ const LanguageContext = createContext<LanguageContextValue | null>(null);
 
 export const LanguageProvider = ({ children }: { children: ReactNode }) => {
   const [language, setLanguageState] = useState<Language>(() => {
+    // En esta parte se restaura el idioma elegido por el usuario.
     const saved = localStorage.getItem("ferremas_language");
     return saved === "en" || saved === "pt" ? saved : "es";
   });
 
   const setLanguage = (nextLanguage: Language) => {
+    // Aqui se persiste el idioma para que sobreviva a recargas.
     localStorage.setItem("ferremas_language", nextLanguage);
     setLanguageState(nextLanguage);
   };
 
   useEffect(() => {
+    // Aca se actualiza el atributo lang del documento para accesibilidad.
     document.documentElement.lang = language;
   }, [language]);
 
