@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import pg from "pg";
-import { productSeed } from "../shared/product-seed.js";
+import { productSeed } from "../../shared/product-seed.js";
 
 const { Pool } = pg;
 

@@ -2,7 +2,7 @@ import { mkdirSync } from "node:fs";
 import path from "node:path";
 import { randomUUID } from "node:crypto";
 import { DatabaseSync } from "node:sqlite";
-import { productSeed } from "../shared/product-seed.js";
+import { productSeed } from "../../shared/product-seed.js";
 
 const defaultDataDir = path.resolve("server", "data");
 const configuredDbPath = process.env.SQLITE_PATH

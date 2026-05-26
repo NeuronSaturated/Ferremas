@@ -21,6 +21,28 @@ Ecommerce fullstack para FERREMAS, con catalogo de productos, carrito, pagos Web
 - Vitest
 - Deploy en Vercel + Render
 
+## Estructura
+
+```txt
+server/
+  index.js            # API Express y endpoints
+  db/                 # Adaptadores PostgreSQL y SQLite
+  services/           # Banco Central, Transbank y seguridad
+  data/               # SQLite local
+src/
+  assets/             # Imagenes importadas por React
+  components/         # Componentes propios y shadcn/ui
+  context/            # Auth, carrito e idioma
+  data/               # Datos base y catalogo fallback
+  lib/                # Helpers de API, Webpay y formato
+  pages/              # Pantallas principales
+public/
+  catalog/            # Imagenes servidas publicamente
+  flags/              # Banderas de moneda
+shared/
+  product-seed.js     # Catalogo semilla compartido por backend
+```
+
 ## Funcionalidades
 
 - Catalogo con busqueda, filtros y detalle de producto.

@@ -18,10 +18,10 @@ import {
   updateOrderAdminState,
   updateUserProfile,
   updateUserPassword,
-} from "./db.js";
-import { hashPassword, verifyPassword } from "./security.js";
-import { getWebpayTransaction, isProductionTransbank } from "./transbank.js";
-import { getExchangeRate, getSupportedExchangeCurrencies } from "./bcentral.js";
+} from "./db/index.js";
+import { hashPassword, verifyPassword } from "./services/security.js";
+import { getWebpayTransaction, isProductionTransbank } from "./services/transbank.js";
+import { getExchangeRate, getSupportedExchangeCurrencies } from "./services/bcentral.js";
 
 const app = express();
 const port = Number(process.env.PORT || 3001);
