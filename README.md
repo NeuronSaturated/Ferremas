@@ -50,6 +50,7 @@ shared/
 - Registro, login, perfil y cambio/recuperacion de contrasena.
 - Pagos con Webpay Plus y pedidos por transferencia.
 - Conversion USD/BRL/GBP a CLP usando la API BDE del Banco Central de Chile.
+- Traduccion ES/EN/PT con diccionario local y LibreTranslate para textos dinamicos.
 - Stock persistente y descontable.
 - Historial de compras del cliente.
 - Panel interno protegido para gestion de pedidos.
@@ -93,6 +94,9 @@ TRANSBANK_API_KEY=
 BCCH_USER=
 BCCH_PASS=
 
+LIBRETRANSLATE_URL=https://libretranslate.com
+LIBRETRANSLATE_API_KEY=
+
 ADMIN_USER=
 ADMIN_PASS=
 ```
@@ -133,6 +137,8 @@ DATABASE_URL=postgresql://...
 TRANSBANK_ENV=integration
 BCCH_USER=
 BCCH_PASS=
+LIBRETRANSLATE_URL=https://libretranslate.com
+LIBRETRANSLATE_API_KEY=
 ADMIN_USER=
 ADMIN_PASS=
 ```

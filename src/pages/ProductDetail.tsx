@@ -15,6 +15,7 @@ import { ArrowLeft, ShoppingCart, Package, Truck, ShieldCheck, ChevronDown } fro
 import { useProducts } from "@/lib/product-api";
 import { apiFetch } from "@/lib/api";
 import { useLanguage } from "@/context/LanguageContext";
+import { useMachineTranslation } from "@/hooks/useMachineTranslation";
 
 type DisplayCurrency = "CLP" | "USD" | "BRL" | "GBP";
 
@@ -52,6 +53,10 @@ const ProductDetail = () => {
   const { t } = useLanguage();
   const { products } = useProducts();
   const product = products.find((p) => p.id === id);
+  const [translatedName, translatedDescription] = useMachineTranslation([
+    product?.name || "",
+    product?.description || "",
+  ]);
   const [displayCurrency, setDisplayCurrency] = useState<DisplayCurrency>("CLP");
   const [exchangeResult, setExchangeResult] = useState<ExchangeConversion | null>(null);
   const [exchangeError, setExchangeError] = useState<string | null>(null);
@@ -139,7 +144,7 @@ const ProductDetail = () => {
         <div className="flex flex-col">
           <Badge className="w-fit bg-secondary text-secondary-foreground">{t(getCategoryKey(product.category))}</Badge>
           <p className="mt-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">{product.brand}</p>
-          <h1 className="mt-1 text-3xl font-extrabold leading-tight md:text-4xl">{product.name}</h1>
+          <h1 className="mt-1 text-3xl font-extrabold leading-tight md:text-4xl">{translatedName}</h1>
 
           <p className="mt-2 text-sm text-muted-foreground">
             {t("sku")}: <span className="font-mono">{product.sku}</span>
@@ -188,7 +193,7 @@ const ProductDetail = () => {
 
           <div className="mt-8">
             <h2 className="mb-2 text-lg font-semibold">{t("description")}</h2>
-            <p className="leading-relaxed text-muted-foreground">{product.description}</p>
+            <p className="leading-relaxed text-muted-foreground">{translatedDescription}</p>
           </div>
 
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">

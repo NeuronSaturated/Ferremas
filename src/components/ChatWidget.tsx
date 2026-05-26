@@ -7,6 +7,8 @@ import { formatCLP, type Product } from "@/data/products";
 import { fetchProducts } from "@/lib/product-api";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
+import { useLanguage } from "@/context/LanguageContext";
+import { useMachineTranslation } from "@/hooks/useMachineTranslation";
 
 type ChatMessage = {
   role: "user" | "assistant";
@@ -26,6 +28,7 @@ const hydrateProducts = async (matches: Array<Omit<Product, "image"> & { imageKe
 
 const ChatWidget = () => {
   const { user } = useAuth();
+  const { language, t } = useLanguage();
   const [open, setOpen] = useState(false);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
@@ -33,9 +36,17 @@ const ChatWidget = () => {
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       role: "assistant",
-      text: "Hola, soy tu asistente virtual. Preguntame por productos, pagos, retiro o despacho.",
+      text: t("chatWelcome"),
     },
   ]);
+
+  useEffect(() => {
+    setMessages((prev) =>
+      prev.length === 1 && prev[0].role === "assistant"
+        ? [{ ...prev[0], text: t("chatWelcome") }]
+        : prev
+    );
+  }, [language, t]);
 
   useEffect(() => {
     if (open) {
@@ -61,7 +72,7 @@ const ChatWidget = () => {
         method: "POST",
         // Aqui se envia el nombre solo para personalizar saludos. El asistente no
         // persiste conversaciones ni usa este dato para decisiones sensibles.
-        body: JSON.stringify({ message: text, customerName: user?.firstName }),
+        body: JSON.stringify({ message: text, customerName: user?.firstName, language }),
       });
       const products = await hydrateProducts(response.products);
       setMessages((prev) => [
@@ -87,10 +98,10 @@ const ChatWidget = () => {
         <section className="mb-3 flex h-[460px] w-[min(92vw,360px)] flex-col overflow-hidden rounded-lg border border-border bg-background shadow-2xl">
           <header className="flex items-center justify-between border-b border-border px-4 py-3">
             <div>
-              <p className="font-semibold">Asistente FERREMAS</p>
-              <p className="text-xs text-muted-foreground">CatÃ¡logo, stock y pagos</p>
+              <p className="font-semibold">{t("chatTitle")}</p>
+              <p className="text-xs text-muted-foreground">{t("chatSubtitle")}</p>
             </div>
-            <Button variant="ghost" size="icon" onClick={() => setOpen(false)} aria-label="Cerrar chat">
+            <Button variant="ghost" size="icon" onClick={() => setOpen(false)} aria-label={t("closeChat")}>
               <X className="h-4 w-4" />
             </Button>
           </header>
@@ -109,28 +120,19 @@ const ChatWidget = () => {
                 {message.products && message.products.length > 0 && (
                   <div className="mt-3 space-y-2">
                     {message.products.map((product) => (
-                      <Link
+                      <ChatProductLink
                         key={product.id}
-                        to={`/producto/${product.id}`}
-                        className="flex items-center gap-2 rounded-md bg-background p-2 text-foreground hover:bg-card"
-                        onClick={() => setOpen(false)}
-                      >
-                        <img src={product.image} alt={product.name} className="h-10 w-10 rounded object-cover" />
-                        <span className="min-w-0 flex-1">
-                          <span className="block truncate font-medium">{product.name}</span>
-                          <span className="block text-xs text-muted-foreground">
-                            {message.showStock
-                              ? `${formatCLP(product.price)} Â· Stock ${product.stock}`
-                              : formatCLP(product.price)}
-                          </span>
-                        </span>
-                      </Link>
+                        product={product}
+                        showStock={Boolean(message.showStock)}
+                        onOpenChange={setOpen}
+                        stockLabel={t("stockLabel")}
+                      />
                     ))}
                   </div>
                 )}
               </div>
             ))}
-            {loading && <p className="text-sm text-muted-foreground">Escribiendo respuesta...</p>}
+            {loading && <p className="text-sm text-muted-foreground">{t("chatTyping")}</p>}
             <div ref={bottomRef} />
           </div>
 
@@ -138,10 +140,10 @@ const ChatWidget = () => {
             <Input
               value={input}
               onChange={(event) => setInput(event.target.value)}
-              placeholder="Buscar taladro, despacho..."
-              aria-label="Mensaje para el asistente"
+              placeholder={t("chatPlaceholder")}
+              aria-label={t("chatInputLabel")}
             />
-            <Button type="submit" size="icon" disabled={loading} aria-label="Enviar mensaje">
+            <Button type="submit" size="icon" disabled={loading} aria-label={t("sendMessage")}>
               <Send className="h-4 w-4" />
             </Button>
           </form>
@@ -150,9 +152,39 @@ const ChatWidget = () => {
 
       <Button size="lg" className="h-12 rounded-full shadow-xl" onClick={() => setOpen((value) => !value)}>
         <MessageCircle className="mr-2 h-5 w-5" />
-        Ayuda
+        {t("help")}
       </Button>
     </div>
+  );
+};
+
+const ChatProductLink = ({
+  product,
+  showStock,
+  onOpenChange,
+  stockLabel,
+}: {
+  product: Product;
+  showStock: boolean;
+  onOpenChange: (open: boolean) => void;
+  stockLabel: string;
+}) => {
+  const [translatedName] = useMachineTranslation([product.name]);
+
+  return (
+    <Link
+      to={`/producto/${product.id}`}
+      className="flex items-center gap-2 rounded-md bg-background p-2 text-foreground hover:bg-card"
+      onClick={() => onOpenChange(false)}
+    >
+      <img src={product.image} alt={translatedName} className="h-10 w-10 rounded object-cover" />
+      <span className="min-w-0 flex-1">
+        <span className="block truncate font-medium">{translatedName}</span>
+        <span className="block text-xs text-muted-foreground">
+          {showStock ? `${formatCLP(product.price)} - ${stockLabel} ${product.stock}` : formatCLP(product.price)}
+        </span>
+      </span>
+    </Link>
   );
 };
 

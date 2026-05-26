@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { ShoppingCart } from "lucide-react";
 import { useCart } from "@/context/CartContext";
 import { useLanguage } from "@/context/LanguageContext";
+import { useMachineTranslation } from "@/hooks/useMachineTranslation";
 import { Link, useNavigate } from "react-router-dom";
 
 const getCategoryKey = (category: Product["category"]) => {
@@ -19,6 +20,7 @@ const ProductCard = ({ product }: { product: Product }) => {
   // Aqui cada producto del catalogo se muestra como tarjeta clickeable.
   const { add } = useCart();
   const { t } = useLanguage();
+  const [translatedName] = useMachineTranslation([product.name]);
   const navigate = useNavigate();
 
   const goToDetail = () => navigate(`/producto/${product.id}`);
@@ -49,7 +51,7 @@ const ProductCard = ({ product }: { product: Product }) => {
         <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{product.brand}</p>
         <h3 className="mt-1 line-clamp-2 text-base font-semibold leading-snug hover:text-primary">
           <Link to={`/producto/${product.id}`} onClick={(e) => e.stopPropagation()}>
-            {product.name}
+            {translatedName}
           </Link>
         </h3>
         <p className="mt-1 text-xs text-muted-foreground">

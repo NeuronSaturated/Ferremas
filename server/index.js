@@ -22,6 +22,7 @@ import {
 import { hashPassword, verifyPassword } from "./services/security.js";
 import { getWebpayTransaction, isProductionTransbank } from "./services/transbank.js";
 import { getExchangeRate, getSupportedExchangeCurrencies } from "./services/bcentral.js";
+import { getSupportedTranslateLanguages, translateTexts } from "./services/translate.js";
 
 const app = express();
 const port = Number(process.env.PORT || 3001);
@@ -227,6 +228,30 @@ app.get("/api/exchange/convert", async (req, res) => {
       message: error.message || "No se pudo convertir la moneda.",
       supported: getSupportedExchangeCurrencies(),
     });
+  }
+});
+
+app.post("/api/translate", async (req, res) => {
+  try {
+    // Aqui se ofrece traduccion automatica para textos dinamicos usando
+    // LibreTranslate. Aca queremos evitar que React conozca la API key y tambien
+    // centralizar el fallback: si el traductor no responde, vuelve el texto original.
+    const target = String(req.body?.target || "es").trim().toLowerCase();
+    const source = String(req.body?.source || "es").trim().toLowerCase();
+    const texts = Array.isArray(req.body?.texts) ? req.body.texts : [req.body?.text];
+
+    if (!getSupportedTranslateLanguages().includes(target)) {
+      return res.status(400).json({
+        message: "Idioma de destino no soportado.",
+        supported: getSupportedTranslateLanguages(),
+      });
+    }
+
+    const translatedTexts = await translateTexts({ texts, target, source });
+    return res.json({ source, target, translations: translatedTexts });
+  } catch (error) {
+    console.error("Error traduciendo con LibreTranslate:", error);
+    return res.status(500).json({ message: "No se pudo traducir el texto." });
   }
 });
 
@@ -514,6 +539,7 @@ app.post("/api/chat", async (req, res) => {
   // despacho, stock y productos, usando la misma base del catalogo.
   const message = String(req.body?.message || "").trim();
   const customerName = String(req.body?.customerName || "").trim();
+  const chatLanguage = String(req.body?.language || "es").trim().toLowerCase();
   const products = await getProducts();
 
   if (!message) {
@@ -528,13 +554,24 @@ app.post("/api/chat", async (req, res) => {
   const normalizedMessage = normalize(message);
   const rawTerms = normalizedMessage.split(/[^a-z0-9]+/).filter(Boolean);
   const hasAny = (words) => words.some((word) => rawTerms.includes(word));
+  const sendChatReply = async ({ reply, products = [], showStock = false }) => {
+    // En esta parte el bot mantiene sus reglas en espanol y LibreTranslate
+    // adapta solo la respuesta final al idioma seleccionado por el usuario.
+    const [translatedReply] = await translateTexts({
+      texts: [reply],
+      target: chatLanguage,
+      source: "es",
+    });
+
+    return res.json({ reply: translatedReply, products, showStock });
+  };
 
   if (rawTerms.length <= 2 && hasAny(["hola", "buenas", "buenos", "hey"])) {
     // En esta parte el saludo usa el nombre del cliente cuando el frontend lo
     // entrega. Si no existe, el asistente responde de forma generica.
     const greetingName = customerName || "cliente";
 
-    return res.json({
+    return sendChatReply({
       reply: `Hola, ${greetingName}. Soy tu asistente virtual. Puedo ayudarte a encontrar productos, comparar precios, revisar stock, medios de pago, retiro y despacho.`,
       products: [],
       showStock: false,
@@ -542,7 +579,7 @@ app.post("/api/chat", async (req, res) => {
   }
 
   if (hasAny(["webpay", "transbank", "pago", "pagos", "transferencia", "tarjeta"])) {
-    return res.json({
+    return sendChatReply({
       reply:
         "Puedes pagar con Webpay Plus o dejar el pedido por transferencia bancaria. En Webpay, el pago se confirma automáticamente al volver a FERREMAS.",
       products: [],
@@ -551,7 +588,7 @@ app.post("/api/chat", async (req, res) => {
   }
 
   if (hasAny(["despacho", "despachos", "envio", "envios", "retiro", "retirar", "sucursal", "sucursales"])) {
-    return res.json({
+    return sendChatReply({
       reply:
         "Puedes elegir retiro en tienda gratis o despacho a domicilio. Si eliges retiro, seleccionas la sucursal antes de confirmar el pedido.",
       products: [],
@@ -643,7 +680,7 @@ app.post("/api/chat", async (req, res) => {
     }).format(first.price);
     const stockText = first.stock > 0 ? `Sí, tenemos stock disponible: ${first.stock} unidad(es).` : "Por ahora aparece sin stock disponible.";
 
-    return res.json({
+    return sendChatReply({
       reply: asksStock
         ? `${stockText} La opción más cercana es ${first.name}, marca ${first.brand}, a ${price}.`
         : `Encontré ${matches.length} opción(es). La más cercana es ${first.name}, marca ${first.brand}, a ${price}.`,
@@ -652,7 +689,7 @@ app.post("/api/chat", async (req, res) => {
     });
   }
 
-  return res.json({
+  return sendChatReply({
     reply:
       "No encontré un producto exacto. Prueba con una palabra clave como taladro, martillo, pintura, cable, casco o cemento.",
     products: [],
