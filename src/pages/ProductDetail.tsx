@@ -36,6 +36,14 @@ const currencyOptions = [
   { code: "GBP", country: "GB", flag: "/flags/reino-unido.png", label: "Reino Unido" },
 ] as const;
 
+const getCategoryKey = (category: string) => {
+  if (category === "Herramientas") return "categoryTools";
+  if (category === "Construcción") return "categoryConstruction";
+  if (category === "Pinturas") return "categoryPaints";
+  if (category === "Eléctrico") return "categoryElectrical";
+  return "categorySafety";
+};
+
 const ProductDetail = () => {
   // Aqui se muestra la ficha de producto: precio, stock, descripcion y compra.
   const { id } = useParams();
@@ -129,7 +137,7 @@ const ProductDetail = () => {
         </div>
 
         <div className="flex flex-col">
-          <Badge className="w-fit bg-secondary text-secondary-foreground">{product.category}</Badge>
+          <Badge className="w-fit bg-secondary text-secondary-foreground">{t(getCategoryKey(product.category))}</Badge>
           <p className="mt-4 text-xs font-semibold uppercase tracking-wider text-muted-foreground">{product.brand}</p>
           <h1 className="mt-1 text-3xl font-extrabold leading-tight md:text-4xl">{product.name}</h1>
 
@@ -164,7 +172,7 @@ const ProductDetail = () => {
           {displayCurrency !== "CLP" && (
             <p className="mt-2 text-xs text-muted-foreground">
               {exchangeLoading
-                ? "Consultando Banco Central..."
+                ? t("consultingCentralBank")
                 : exchangeResult
                   ? `1 ${displayCurrency} = ${formatCLP(exchangeResult.rate)}. ${t("finalPaymentClp")}`
                   : exchangeError}

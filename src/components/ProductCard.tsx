@@ -4,11 +4,21 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ShoppingCart } from "lucide-react";
 import { useCart } from "@/context/CartContext";
+import { useLanguage } from "@/context/LanguageContext";
 import { Link, useNavigate } from "react-router-dom";
+
+const getCategoryKey = (category: Product["category"]) => {
+  if (category === "Herramientas") return "categoryTools";
+  if (category === "Construcción") return "categoryConstruction";
+  if (category === "Pinturas") return "categoryPaints";
+  if (category === "Eléctrico") return "categoryElectrical";
+  return "categorySafety";
+};
 
 const ProductCard = ({ product }: { product: Product }) => {
   // Aqui cada producto del catalogo se muestra como tarjeta clickeable.
   const { add } = useCart();
+  const { t } = useLanguage();
   const navigate = useNavigate();
 
   const goToDetail = () => navigate(`/producto/${product.id}`);
@@ -33,7 +43,7 @@ const ProductCard = ({ product }: { product: Product }) => {
           height={800}
           className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-105"
         />
-        <Badge className="absolute left-3 top-3 bg-secondary text-secondary-foreground">{product.category}</Badge>
+        <Badge className="absolute left-3 top-3 bg-secondary text-secondary-foreground">{t(getCategoryKey(product.category))}</Badge>
       </div>
       <div className="flex flex-1 flex-col p-4">
         <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{product.brand}</p>
@@ -42,7 +52,9 @@ const ProductCard = ({ product }: { product: Product }) => {
             {product.name}
           </Link>
         </h3>
-        <p className="mt-1 text-xs text-muted-foreground">SKU: {product.sku} · Stock: {product.stock}</p>
+        <p className="mt-1 text-xs text-muted-foreground">
+          {t("sku")}: {product.sku} - {t("stock")}: {product.stock}
+        </p>
         <div className="mt-auto flex items-center justify-between pt-4">
           <span className="text-lg font-extrabold text-foreground">{formatCLP(product.price)}</span>
           <Button
@@ -56,7 +68,7 @@ const ProductCard = ({ product }: { product: Product }) => {
             }}
           >
             <ShoppingCart className="mr-1 h-4 w-4" />
-            Agregar
+            {t("add")}
           </Button>
         </div>
       </div>

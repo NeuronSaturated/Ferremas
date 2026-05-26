@@ -5,13 +5,22 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search, ChevronLeft, ChevronRight } from "lucide-react";
 import { useProducts } from "@/lib/product-api";
+import { useLanguage } from "@/context/LanguageContext";
 
-const cats = ["Todos", "Herramientas", "Construcción", "Pinturas", "Eléctrico", "Seguridad"] as const;
+const cats = [
+  { value: "Todos", labelKey: "categoryAll" },
+  { value: "Herramientas", labelKey: "categoryTools" },
+  { value: "Construcción", labelKey: "categoryConstruction" },
+  { value: "Pinturas", labelKey: "categoryPaints" },
+  { value: "Eléctrico", labelKey: "categoryElectrical" },
+  { value: "Seguridad", labelKey: "categorySafety" },
+] as const;
 const PAGE_SIZE = 8;
 
 const Catalog = () => {
   // Aqui el catalogo combina productos del backend, filtros por URL y paginacion.
   const { products } = useProducts();
+  const { t } = useLanguage();
   const [params, setParams] = useSearchParams();
   const initial = params.get("cat") ?? "Todos";
   const initialQ = params.get("q") ?? "";
@@ -27,9 +36,9 @@ const Catalog = () => {
 
   const list = useMemo(() => {
     return products.filter(
-      (p) =>
-        (cat === "Todos" || p.category === cat) &&
-        (q === "" || `${p.name} ${p.brand} ${p.sku}`.toLowerCase().includes(q.toLowerCase()))
+      (product) =>
+        (cat === "Todos" || product.category === cat) &&
+        (q === "" || `${product.name} ${product.brand} ${product.sku}`.toLowerCase().includes(q.toLowerCase()))
     );
   }, [cat, products, q]);
 
@@ -42,17 +51,17 @@ const Catalog = () => {
 
   const visible = list.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
-  const goTo = (p: number) => {
-    setPage(p);
+  const goTo = (nextPage: number) => {
+    setPage(nextPage);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   return (
     <section className="container py-12">
       <header className="mb-8">
-        <h1 className="text-4xl font-extrabold">Catálogo</h1>
+        <h1 className="text-4xl font-extrabold">{t("catalog")}</h1>
         <p className="mt-2 text-muted-foreground">
-          {products.length} productos disponibles en línea · {totalPages} páginas
+          {products.length} {t("productsAvailable")} - {totalPages} {t("pages")}
         </p>
       </header>
 
@@ -60,46 +69,46 @@ const Catalog = () => {
         <div className="relative w-full md:max-w-sm">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
-            placeholder="Buscar producto, SKU o marca..."
+            placeholder={t("searchProductSkuBrand")}
             value={q}
             onChange={(e) => setQ(e.target.value)}
             className="pl-9"
           />
         </div>
         <div className="flex flex-wrap gap-2">
-          {cats.map((c) => (
+          {cats.map((category) => (
             <Button
-              key={c}
-              variant={cat === c ? "default" : "outline"}
+              key={category.value}
+              variant={cat === category.value ? "default" : "outline"}
               size="sm"
               onClick={() => {
-                setCat(c);
+                setCat(category.value);
                 const nextParams = new URLSearchParams(params);
-                if (c === "Todos") nextParams.delete("cat");
-                else nextParams.set("cat", c);
+                if (category.value === "Todos") nextParams.delete("cat");
+                else nextParams.set("cat", category.value);
                 setParams(nextParams, { replace: true });
               }}
             >
-              {c}
+              {t(category.labelKey)}
             </Button>
           ))}
         </div>
       </div>
 
       {list.length === 0 ? (
-        <p className="py-20 text-center text-muted-foreground">No se encontraron productos.</p>
+        <p className="py-20 text-center text-muted-foreground">{t("noProductsFound")}</p>
       ) : (
         <>
           <div className="grid grid-cols-2 gap-5 md:grid-cols-3 lg:grid-cols-4">
-            {visible.map((p) => (
-              <ProductCard key={p.id} product={p} />
+            {visible.map((product) => (
+              <ProductCard key={product.id} product={product} />
             ))}
           </div>
 
           {/* Aqui se muestra paginacion para no cargar demasiadas tarjetas juntas. */}
           <div className="mt-12 flex flex-col items-center gap-4">
             <p className="text-sm text-muted-foreground">
-              Mostrando {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, list.length)} de {list.length}
+              {t("showing")} {(page - 1) * PAGE_SIZE + 1}-{Math.min(page * PAGE_SIZE, list.length)} {t("of")} {list.length}
             </p>
             <div className="flex flex-wrap items-center justify-center gap-2">
               <Button
@@ -109,17 +118,17 @@ const Catalog = () => {
                 disabled={page === 1}
               >
                 <ChevronLeft className="h-4 w-4" />
-                Anterior
+                {t("previous")}
               </Button>
-              {Array.from({ length: totalPages }, (_, i) => i + 1).map((n) => (
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNumber) => (
                 <Button
-                  key={n}
-                  variant={n === page ? "default" : "outline"}
+                  key={pageNumber}
+                  variant={pageNumber === page ? "default" : "outline"}
                   size="sm"
                   className="min-w-10"
-                  onClick={() => goTo(n)}
+                  onClick={() => goTo(pageNumber)}
                 >
-                  {n}
+                  {pageNumber}
                 </Button>
               ))}
               <Button
@@ -128,7 +137,7 @@ const Catalog = () => {
                 onClick={() => goTo(Math.min(totalPages, page + 1))}
                 disabled={page === totalPages}
               >
-                Siguiente
+                {t("next")}
                 <ChevronRight className="h-4 w-4" />
               </Button>
             </div>

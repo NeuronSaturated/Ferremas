@@ -33,6 +33,7 @@ import { toast } from "sonner";
 import { fullPhone } from "@/lib/format";
 import { createWebpayTransaction, redirectToWebpay } from "@/lib/webpay";
 import { apiFetch, getSessionToken } from "@/lib/api";
+import { useLanguage } from "@/context/LanguageContext";
 
 const branches = [
   "Santiago Centro",
@@ -59,6 +60,7 @@ const Cart = () => {
   // Aqui se completa el checkout: entrega, sucursal, pago, resumen y conversion.
   const { items, remove, setQty, total, clear } = useCart();
   const { user, refreshUser } = useAuth();
+  const { t } = useLanguage();
   const navigate = useNavigate();
   const [delivery, setDelivery] = useState<"retiro" | "despacho">("retiro");
   const [payment, setPayment] = useState<"webpay" | "transferencia">("webpay");
@@ -201,8 +203,8 @@ const Cart = () => {
 
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text).then(
-      () => toast.success(`${label} copiado`),
-      () => toast.error("No se pudo copiar")
+      () => toast.success(`${label} ${t("copied")}`),
+      () => toast.error(t("copyFailed"))
     );
   };
 
@@ -213,16 +215,16 @@ const Cart = () => {
           <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-success/15 text-success">
             <CheckCircle2 className="h-8 w-8" />
           </div>
-          <h1 className="mt-5 text-2xl font-bold">Pedido registrado</h1>
+          <h1 className="mt-5 text-2xl font-bold">{t("orderRegistered")}</h1>
           <p className="mt-2 text-muted-foreground">
-            Tu pedido <strong>{done}</strong> quedo pendiente de validacion manual del pago.
+            <strong>{done}</strong>: {t("pendingManualPayment")}
           </p>
           <div className="mt-6 flex justify-center gap-3">
             <Button asChild variant="outline">
-              <Link to="/catalogo">Seguir comprando</Link>
+              <Link to="/catalogo">{t("keepShopping")}</Link>
             </Button>
             <Button asChild>
-              <Link to="/perfil?tab=orders">Ver mis compras</Link>
+              <Link to="/perfil?tab=orders">{t("seeMyOrders")}</Link>
             </Button>
           </div>
         </Card>
@@ -236,22 +238,20 @@ const Cart = () => {
     <section className="container py-12">
       <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
         <div>
-          <h1 className="text-4xl font-extrabold">Carrito de compras</h1>
-          <p className="mt-2 text-muted-foreground">
-            Revisa tu pedido y completa el proceso de compra.
-          </p>
+          <h1 className="text-4xl font-extrabold">{t("cartTitle")}</h1>
+          <p className="mt-2 text-muted-foreground">{t("cartSubtitle")}</p>
         </div>
         <div className="rounded-xl border border-primary/20 bg-primary/5 px-4 py-3 text-sm text-muted-foreground">
-          <p className="font-semibold text-foreground">Compra segura</p>
-          <p>Tu pedido quedará disponible en tu historial de compras.</p>
+          <p className="font-semibold text-foreground">{t("securePurchase")}</p>
+          <p>{t("orderInHistory")}</p>
         </div>
       </div>
 
       {items.length === 0 ? (
         <Card className="mt-10 p-16 text-center">
-          <p className="text-lg text-muted-foreground">Tu carrito esta vacio.</p>
+          <p className="text-lg text-muted-foreground">{t("emptyCart")}</p>
           <Button asChild className="mt-6">
-            <Link to="/catalogo">Ir al catalogo</Link>
+            <Link to="/catalogo">{t("goToCatalog")}</Link>
           </Button>
         </Card>
       ) : (
@@ -271,7 +271,7 @@ const Cart = () => {
                       variant="ghost"
                       size="icon"
                       onClick={() => remove(it.id)}
-                      aria-label="Eliminar"
+                      aria-label={t("remove")}
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
@@ -306,26 +306,26 @@ const Cart = () => {
 
             <Card className="p-6">
               <div className="mb-4 flex items-center justify-between">
-                <h2 className="font-semibold">Datos de contacto</h2>
+                <h2 className="font-semibold">{t("contactData")}</h2>
                 <Button type="button" variant="ghost" size="sm" asChild>
-                  <Link to="/perfil">Editar</Link>
+                  <Link to="/perfil">{t("edit")}</Link>
                 </Button>
               </div>
               <div className="grid gap-4 md:grid-cols-2">
                 <div>
-                  <Label>Nombre</Label>
+                  <Label>{t("name")}</Label>
                   <Input value={`${user.firstName} ${user.lastName}`} disabled />
                 </div>
                 <div>
-                  <Label>Email</Label>
+                  <Label>{t("email")}</Label>
                   <Input value={user.email} disabled />
                 </div>
                 <div>
-                  <Label>Telefono</Label>
+                  <Label>{t("phone")}</Label>
                   <Input value={fullPhone(user.phone)} disabled />
                 </div>
                 <div>
-                  <Label>RUT</Label>
+                  <Label>{t("rut")}</Label>
                   <Input value={user.rut} disabled />
                 </div>
               </div>
@@ -336,10 +336,10 @@ const Cart = () => {
                 <div className="mb-4 flex items-center justify-between">
                   <h2 className="flex items-center gap-2 font-semibold">
                     <MapPin className="h-4 w-4" />
-                    Direccion de despacho
+                    {t("dispatchAddress")}
                   </h2>
                   <Button type="button" variant="ghost" size="sm" asChild>
-                    <Link to="/perfil?tab=address">{user.address ? "Editar" : "Agregar"}</Link>
+                    <Link to="/perfil?tab=address">{user.address ? t("edit") : t("addAddress")}</Link>
                   </Button>
                 </div>
                 {user.address ? (
@@ -350,7 +350,7 @@ const Cart = () => {
                   </p>
                 ) : (
                   <p className="text-sm text-destructive">
-                    Aun no has registrado una direccion.
+                    {t("missingAddress")}
                   </p>
                 )}
               </Card>
@@ -359,7 +359,7 @@ const Cart = () => {
 
           <aside className="space-y-4 lg:sticky lg:top-24 lg:max-h-[calc(100vh-7rem)] lg:overflow-y-auto lg:pr-2">
             <Card className="p-6">
-              <h2 className="mb-4 font-semibold">Entrega</h2>
+              <h2 className="mb-4 font-semibold">{t("delivery")}</h2>
               <RadioGroup
                 value={delivery}
                 onValueChange={(value) => setDelivery(value as "retiro" | "despacho")}
@@ -368,14 +368,14 @@ const Cart = () => {
                 <label className="flex cursor-pointer items-center justify-between rounded-md border border-border p-3">
                   <span className="flex items-center gap-3">
                     <RadioGroupItem value="retiro" id="retiro" />
-                    <span>Retiro en tienda</span>
+                    <span>{t("storePickupOption")}</span>
                   </span>
-                  <span className="text-sm text-success">Gratis</span>
+                  <span className="text-sm text-success">{t("free")}</span>
                 </label>
                 <label className="flex cursor-pointer items-center justify-between rounded-md border border-border p-3">
                   <span className="flex items-center gap-3">
                     <RadioGroupItem value="despacho" id="despacho" />
-                    <span>Despacho a domicilio</span>
+                    <span>{t("homeShipping")}</span>
                   </span>
                   <span className="text-sm">{formatCLP(4990)}</span>
                 </label>
@@ -386,7 +386,7 @@ const Cart = () => {
               <Card className="p-6">
                 <h2 className="mb-4 flex items-center gap-2 font-semibold">
                   <Store className="h-4 w-4" />
-                  Sucursal de retiro
+                  {t("pickupBranch")}
                 </h2>
                 <select
                   value={branch}
@@ -405,7 +405,7 @@ const Cart = () => {
             <Card className="p-6">
               <h2 className="mb-4 flex items-center gap-2 font-semibold">
                 <CreditCard className="h-4 w-4" />
-                Metodo de pago
+                {t("paymentMethod")}
               </h2>
               <RadioGroup
                 value={payment}
@@ -415,18 +415,18 @@ const Cart = () => {
                 <label className="flex cursor-pointer items-start gap-3 rounded-md border border-border p-3">
                   <RadioGroupItem value="webpay" id="webpay" className="mt-1" />
                   <div>
-                    <p className="font-medium">Webpay Plus (Transbank)</p>
+                    <p className="font-medium">{t("webpayName")}</p>
                     <p className="text-sm text-muted-foreground">
-                      Pago seguro con debito o credito en la pasarela oficial de Transbank.
+                      {t("webpayText")}
                     </p>
                   </div>
                 </label>
                 <label className="flex cursor-pointer items-start gap-3 rounded-md border border-border p-3">
                   <RadioGroupItem value="transferencia" id="transferencia" className="mt-1" />
                   <div>
-                    <p className="font-medium">Transferencia bancaria</p>
+                    <p className="font-medium">{t("bankTransfer")}</p>
                     <p className="text-sm text-muted-foreground">
-                      Registra el pedido y deja el pago pendiente de confirmacion manual.
+                      {t("bankTransferText")}
                     </p>
                   </div>
                 </label>
@@ -437,8 +437,7 @@ const Cart = () => {
               <div className="mb-4 flex items-start gap-3 rounded-lg border border-primary/20 bg-primary/5 p-4 text-sm">
                 <ShieldCheck className="mt-0.5 h-4 w-4 text-primary" />
                 <p className="text-muted-foreground">
-                  Las tarjetas ya no se procesan dentro de esta app. El cobro se realiza en
-                  Webpay Plus para cumplir un flujo mas seguro y compatible con Transbank.
+                  {t("cardsHandledByWebpay")}
                 </p>
               </div>
 
@@ -447,10 +446,10 @@ const Cart = () => {
                   <div>
                     <h2 className="flex items-center gap-2 font-semibold">
                       <Globe2 className="h-4 w-4 text-primary" />
-                      Compra internacional
+                      {t("internationalPurchase")}
                     </h2>
                     <p className="mt-1 text-xs text-muted-foreground">
-                      Muestra una referencia en moneda extranjera usando Banco Central.
+                      {t("internationalPurchaseText")}
                     </p>
                   </div>
                   <Button
@@ -459,14 +458,14 @@ const Cart = () => {
                     size="sm"
                     onClick={() => setExchangeEnabled((current) => !current)}
                   >
-                    {exchangeEnabled ? "Ocultar" : "Ver total"}
+                    {exchangeEnabled ? t("hide") : t("seeTotal")}
                   </Button>
                 </div>
 
                 {exchangeEnabled && (
                   <div className="mt-4 rounded-md bg-muted/40 p-3">
                     <div className="flex items-center justify-between gap-3">
-                      <span className="text-sm font-medium">Quiero ver mi total en</span>
+                      <span className="text-sm font-medium">{t("totalIn")}</span>
                       <select
                         value={exchangeCurrency}
                         onChange={(event) => setExchangeCurrency(event.target.value as "USD" | "BRL" | "GBP")}
@@ -481,20 +480,20 @@ const Cart = () => {
 
                     <div className="mt-3 text-sm">
                       {exchangeLoading ? (
-                        <p className="text-muted-foreground">Consultando Banco Central...</p>
+                        <p className="text-muted-foreground">{t("consultingCentralBank")}</p>
                       ) : exchangeResult && estimatedForeignTotal !== null ? (
                         <div className="space-y-1">
-                          <p className="text-xs text-muted-foreground">Total oficial a pagar</p>
+                          <p className="text-xs text-muted-foreground">{t("officialTotalToPay")}</p>
                           <p className="text-lg font-extrabold">{formatCLP(finalTotal)} CLP</p>
                           <p className="font-semibold text-primary">
-                            Referencia: {exchangeCurrency}{" "}
+                            {t("reference")}: {exchangeCurrency}{" "}
                             {estimatedForeignTotal.toLocaleString("es-CL", {
                               minimumFractionDigits: 2,
                               maximumFractionDigits: 2,
                             })}
                           </p>
                           <p className="text-xs text-muted-foreground">
-                            1 {exchangeCurrency} = {formatCLP(exchangeResult.rate)}. Fecha BCCh:{" "}
+                            1 {exchangeCurrency} = {formatCLP(exchangeResult.rate)}. {t("centralBankDate")}:{" "}
                             {exchangeResult.date}.
                           </p>
                         </div>
@@ -506,31 +505,31 @@ const Cart = () => {
                 )}
 
                 <p className="mt-3 text-xs text-muted-foreground">
-                  Webpay Plus procesa el pago en pesos chilenos. La moneda extranjera es solo una referencia.
+                  {t("foreignCurrencyNote")}
                 </p>
               </div>
 
-              <h2 className="mb-4 font-semibold">Resumen</h2>
+              <h2 className="mb-4 font-semibold">{t("summary")}</h2>
               <dl className="space-y-2 text-sm">
                 <div className="flex justify-between">
-                  <dt className="text-muted-foreground">Subtotal</dt>
+                  <dt className="text-muted-foreground">{t("subtotal")}</dt>
                   <dd>{formatCLP(total)}</dd>
                 </div>
                 <div className="flex justify-between">
-                  <dt className="text-muted-foreground">Despacho</dt>
+                  <dt className="text-muted-foreground">{t("homeShipping")}</dt>
                   <dd>{formatCLP(shipping)}</dd>
                 </div>
                 <div className="flex justify-between">
-                  <dt className="text-muted-foreground">Sucursal</dt>
+                  <dt className="text-muted-foreground">{t("branches")}</dt>
                   <dd>{branch}</dd>
                 </div>
                 <div className="mt-3 flex justify-between border-t border-border pt-3 text-base font-bold">
-                  <dt>Total</dt>
+                  <dt>{t("total")}</dt>
                   <dd>{formatCLP(finalTotal)}</dd>
                 </div>
               </dl>
               <Button type="submit" size="lg" className="mt-6 w-full shadow-glow" disabled={processing}>
-                {processing ? "Procesando..." : payment === "webpay" ? "Pagar con Transbank" : "Confirmar pedido"}
+                {processing ? t("processing") : payment === "webpay" ? t("payWithTransbank") : t("confirmOrder")}
               </Button>
             </Card>
           </aside>
@@ -542,23 +541,22 @@ const Cart = () => {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Building2 className="h-5 w-5 text-primary" />
-              Datos para transferencia
+              {t("toTransfer")}
             </DialogTitle>
             <DialogDescription>
-              Realiza la transferencia por{" "}
-              <strong className="text-foreground">{formatCLP(finalTotal)}</strong> a la cuenta
-              indicada y luego confirma para registrar tu pedido.
+              {t("transferInstructions")}{" "}
+              <strong className="text-foreground">{formatCLP(finalTotal)}</strong>
             </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-3 rounded-lg border border-border bg-muted/40 p-4 text-sm">
             {[
-              { label: "Banco", value: "Banco de Chile" },
-              { label: "Tipo de cuenta", value: "Cuenta Corriente" },
-              { label: "N de cuenta", value: "001-23456-78" },
+              { label: t("bank"), value: "Banco de Chile" },
+              { label: t("accountType"), value: "Cuenta Corriente" },
+              { label: t("accountNumber"), value: "001-23456-78" },
               { label: "RUT", value: "76.123.456-7" },
-              { label: "Razon social", value: "FERREMAS SpA" },
-              { label: "Email", value: "pagos@ferremas.cl" },
+              { label: t("businessName"), value: "FERREMAS SpA" },
+              { label: t("email"), value: "pagos@ferremas.cl" },
             ].map((row) => (
               <div key={row.label} className="flex items-center justify-between gap-3">
                 <div>
@@ -578,28 +576,27 @@ const Cart = () => {
             ))}
             <div className="flex items-center justify-between gap-3 border-t border-border pt-3">
               <div>
-                <p className="text-xs text-muted-foreground">Monto a transferir</p>
+                <p className="text-xs text-muted-foreground">{t("amountToTransfer")}</p>
                 <p className="text-lg font-extrabold text-primary">{formatCLP(finalTotal)}</p>
               </div>
               <Button
                 type="button"
                 variant="ghost"
                 size="icon"
-                onClick={() => copyToClipboard(String(finalTotal), "Monto")}
+                onClick={() => copyToClipboard(String(finalTotal), t("amountToTransfer"))}
                 aria-label="Copiar monto"
               >
                 <Copy className="h-4 w-4" />
               </Button>
             </div>
             <p className="pt-2 text-xs text-muted-foreground">
-              Importante: indica tu RUT <strong>{user.rut}</strong> en el comentario de la
-              transferencia para identificar tu pago.
+              {t("transferRutNote")} <strong>{user.rut}</strong>
             </p>
           </div>
 
           <DialogFooter className="gap-2 sm:gap-2">
             <Button type="button" variant="outline" onClick={() => setTransferOpen(false)}>
-              Cancelar
+              {t("cancel")}
             </Button>
             <Button
               type="button"
@@ -610,7 +607,7 @@ const Cart = () => {
               }}
             >
               <CheckCircle2 className="mr-2 h-4 w-4" />
-              Ya transferi, confirmar pedido
+              {t("transferDone")}
             </Button>
           </DialogFooter>
         </DialogContent>
