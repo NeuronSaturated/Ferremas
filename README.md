@@ -39,6 +39,8 @@ Estas son las tecnologias principales utilizadas en el proyecto:
 - [![Express][Express.js]][Express-url]
 - [![PostgreSQL][PostgreSQL]][PostgreSQL-url]
 - [![Supabase][Supabase]][Supabase-url]
+- [![Vercel][Vercel]][Vercel-url]
+- [![Render][Render]][Render-url]
 - [![Transbank][Transbank]][Transbank-url]
 - [![Vitest][Vitest]][Vitest-url]
 
@@ -70,7 +72,7 @@ Esta seccion resume como preparar el proyecto para revision o desarrollo.
 - Node.js 22 o superior
 - npm
 
-### Instalacion
+### Instalación
 
 1. Instalar dependencias:
 
@@ -208,6 +210,10 @@ El lint puede mostrar advertencias heredadas de Fast Refresh, pero no errores cr
 [PostgreSQL-url]: https://www.postgresql.org/
 [Supabase]: https://img.shields.io/badge/Supabase-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white
 [Supabase-url]: https://supabase.com/
+[Vercel]: https://img.shields.io/badge/Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white
+[Vercel-url]: https://vercel.com/
+[Render]: https://img.shields.io/badge/Render-46E3B7?style=for-the-badge&logo=render&logoColor=000000
+[Render-url]: https://render.com/
 [Transbank]: https://img.shields.io/badge/Transbank-Webpay_Plus-E30613?style=for-the-badge
 [Transbank-url]: https://www.transbankdevelopers.cl/
 [Vitest]: https://img.shields.io/badge/Vitest-6E9F18?style=for-the-badge&logo=vitest&logoColor=white
