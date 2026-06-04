@@ -139,6 +139,24 @@ const mapUserRow = (row, includePassword = false) => {
   return user;
 };
 
+const formatProductDate = (value) => {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+
+  const parts = new Intl.DateTimeFormat("es-CL", {
+    timeZone: "America/Santiago",
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).formatToParts(date);
+  const byType = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+
+  return `${byType.day}-${byType.month}-${byType.year} ${byType.hour}:${byType.minute}`;
+};
+
 const mapProductRow = (row) => ({
   id: row.id,
   sku: row.sku,
@@ -149,7 +167,7 @@ const mapProductRow = (row) => ({
   stock: Number(row.stock),
   imageKey: row.image_key,
   description: row.description,
-  date: row.updated_at,
+  date: formatProductDate(row.updated_at),
 });
 
 export const getProducts = async () => {
