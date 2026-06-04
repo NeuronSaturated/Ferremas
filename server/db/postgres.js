@@ -149,6 +149,7 @@ const mapProductRow = (row) => ({
   stock: Number(row.stock),
   imageKey: row.image_key,
   description: row.description,
+  date: row.updated_at,
 });
 
 export const getProducts = async () => {
