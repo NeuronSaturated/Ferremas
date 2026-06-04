@@ -1,42 +1,69 @@
-# FERREMAS
+<a id="readme-top"></a>
 
-FERREMAS es un ecommerce fullstack desarrollado para la evaluacion de Integracion de Plataformas. La aplicacion simula una ferreteria online con catalogo, carrito de compras, usuarios, pagos, conversion de moneda, panel interno, chatbot y sucursales con mapa.
+<div align="center">
+  <h1>FERREMAS</h1>
+  <p>
+    Ecommerce fullstack para una ferreteria online, desarrollado como proyecto de Integracion de Plataformas.
+  </p>
+</div>
+
+## Tabla de contenidos
+
+- [Sobre el proyecto](#sobre-el-proyecto)
+- [Construido con](#construido-con)
+- [Funcionalidades](#funcionalidades)
+- [Primeros pasos](#primeros-pasos)
+- [Rutas principales](#rutas-principales)
+- [API principal](#api-principal)
+- [Pruebas en Postman](#pruebas-en-postman)
+- [Verificacion](#verificacion)
+- [Seguridad](#seguridad)
+
+## Sobre el proyecto
+
+FERREMAS simula una tienda online de productos de ferreteria y construccion. La aplicacion permite navegar el catalogo, revisar productos, agregar al carrito, comprar, pagar con Webpay Plus, consultar conversion de moneda con Banco Central, revisar sucursales y administrar pedidos desde un panel interno protegido.
+
+El proyecto integra frontend, backend, base de datos y servicios externos para representar un flujo completo de compra y gestion.
+
+<p align="right">(<a href="#readme-top">volver arriba</a>)</p>
 
 ## Construido con
 
-Este proyecto utiliza las siguientes tecnologias principales:
+Estas son las tecnologias principales utilizadas en el proyecto:
 
-- React
-- Vite
-- TypeScript
-- Tailwind CSS
-- shadcn/ui
-- Node.js
-- Express
-- PostgreSQL / Supabase
-- SQLite
-- Transbank Webpay Plus
-- API BDE del Banco Central de Chile
-- LibreTranslate / MyMemory
-- Vitest
+- [![React][React.js]][React-url]
+- [![Vite][Vite.js]][Vite-url]
+- [![TypeScript][TypeScript.js]][TypeScript-url]
+- [![Tailwind CSS][Tailwind.css]][Tailwind-url]
+- [![Node.js][Node.js]][Node-url]
+- [![Express][Express.js]][Express-url]
+- [![PostgreSQL][PostgreSQL]][PostgreSQL-url]
+- [![Supabase][Supabase]][Supabase-url]
+- [![Transbank][Transbank]][Transbank-url]
+- [![Vitest][Vitest]][Vitest-url]
+
+Tambien se utiliza SQLite como respaldo local, la API BDE del Banco Central de Chile para conversion de moneda y servicios de traduccion como LibreTranslate/MyMemory.
+
+<p align="right">(<a href="#readme-top">volver arriba</a>)</p>
 
 ## Funcionalidades
 
 - Catalogo de productos con busqueda, filtros por categoria, stock disponible y detalle individual.
 - Carrito de compras con seleccion de cantidad, retiro en tienda o despacho a domicilio.
-- Registro e inicio de sesion para clientes.
-- Perfil de usuario con datos personales, seguridad e historial de compras.
+- Registro, inicio de sesion, perfil de usuario, seguridad e historial de compras.
 - Pago mediante Webpay Plus de Transbank.
-- Opcion de pedido por transferencia bancaria con validacion manual.
-- Conversion referencial de moneda extranjera a pesos chilenos usando la API del Banco Central de Chile.
+- Pedido por transferencia bancaria con validacion manual.
+- Conversion referencial de moneda extranjera a pesos chilenos mediante Banco Central.
 - Selector de idioma para espanol, ingles y portugues.
-- Chatbot conectado al backend para consultas sobre productos, stock, pagos, retiro y despacho.
-- Panel interno protegido para administracion y revision de pedidos.
-- Pagina de sucursales con detalle, informacion de contacto y mapa interactivo.
+- Chatbot conectado al backend para responder sobre productos, stock, pagos, retiro y despacho.
+- Panel interno protegido para revisar pedidos y actualizar estados.
+- Pagina de sucursales con detalle, contacto y mapa interactivo.
+
+<p align="right">(<a href="#readme-top">volver arriba</a>)</p>
 
 ## Primeros pasos
 
-Esta seccion indica como preparar una copia del proyecto para revision o desarrollo.
+Esta seccion resume como preparar el proyecto para revision o desarrollo.
 
 ### Requisitos
 
@@ -59,7 +86,7 @@ npm run dev:all
 
 Si no existe una conexion PostgreSQL configurada, el backend utiliza SQLite como respaldo local para facilitar las pruebas.
 
-## Scripts disponibles
+### Scripts disponibles
 
 ```bash
 npm run dev          # inicia el frontend
@@ -70,6 +97,8 @@ npm run test         # ejecuta pruebas automatizadas
 npm run lint         # revisa el codigo
 npm run db:reset     # reinicia la base SQLite local
 ```
+
+<p align="right">(<a href="#readme-top">volver arriba</a>)</p>
 
 ## Rutas principales
 
@@ -82,6 +111,8 @@ npm run db:reset     # reinicia la base SQLite local
 - `/sucursales/:slug`: detalle de sucursal con mapa.
 - `/admin`: acceso interno.
 - `/panel`: administracion de pedidos.
+
+<p align="right">(<a href="#readme-top">volver arriba</a>)</p>
 
 ## API principal
 
@@ -103,6 +134,8 @@ npm run db:reset     # reinicia la base SQLite local
 - `POST /api/admin/login`: inicia sesion administrativa.
 - `GET /api/admin/orders`: lista pedidos para el panel interno.
 - `PATCH /api/admin/orders/:id`: actualiza el estado de un pedido.
+
+<p align="right">(<a href="#readme-top">volver arriba</a>)</p>
 
 ## Pruebas en Postman
 
@@ -133,6 +166,8 @@ Ejemplo de respuesta:
 }
 ```
 
+<p align="right">(<a href="#readme-top">volver arriba</a>)</p>
+
 ## Verificacion
 
 Antes de entregar o publicar cambios se recomienda ejecutar:
@@ -145,6 +180,8 @@ npm run lint
 
 El lint puede mostrar advertencias heredadas de Fast Refresh, pero no errores criticos.
 
+<p align="right">(<a href="#readme-top">volver arriba</a>)</p>
+
 ## Seguridad
 
 - No subir archivos `.env`.
@@ -152,3 +189,26 @@ El lint puede mostrar advertencias heredadas de Fast Refresh, pero no errores cr
 - Mantener las credenciales administrativas solo como variables privadas del servidor.
 - Usar tokens de sesion para proteger rutas de clientes y administradores.
 - Validar los datos recibidos antes de crear pedidos o iniciar pagos.
+
+<p align="right">(<a href="#readme-top">volver arriba</a>)</p>
+
+[React.js]: https://img.shields.io/badge/React-20232A?style=for-the-badge&logo=react&logoColor=61DAFB
+[React-url]: https://react.dev/
+[Vite.js]: https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=FFD62E
+[Vite-url]: https://vite.dev/
+[TypeScript.js]: https://img.shields.io/badge/TypeScript-3178C6?style=for-the-badge&logo=typescript&logoColor=white
+[TypeScript-url]: https://www.typescriptlang.org/
+[Tailwind.css]: https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white
+[Tailwind-url]: https://tailwindcss.com/
+[Node.js]: https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white
+[Node-url]: https://nodejs.org/
+[Express.js]: https://img.shields.io/badge/Express-000000?style=for-the-badge&logo=express&logoColor=white
+[Express-url]: https://expressjs.com/
+[PostgreSQL]: https://img.shields.io/badge/PostgreSQL-316192?style=for-the-badge&logo=postgresql&logoColor=white
+[PostgreSQL-url]: https://www.postgresql.org/
+[Supabase]: https://img.shields.io/badge/Supabase-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white
+[Supabase-url]: https://supabase.com/
+[Transbank]: https://img.shields.io/badge/Transbank-Webpay_Plus-E30613?style=for-the-badge
+[Transbank-url]: https://www.transbankdevelopers.cl/
+[Vitest]: https://img.shields.io/badge/Vitest-6E9F18?style=for-the-badge&logo=vitest&logoColor=white
+[Vitest-url]: https://vitest.dev/
