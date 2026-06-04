@@ -1,42 +1,31 @@
 # FERREMAS
 
-Ecommerce fullstack para FERREMAS desarrollado para Integracion de Plataformas. Incluye catalogo, carrito, usuarios, historial de compras, panel interno, Webpay Plus, conversion de moneda con Banco Central, chatbot y sucursales con mapa.
-
-## Demo
-
-- Frontend: https://ferremas-ecru.vercel.app
-- Backend: https://ferremas-backend-nh5z.onrender.com
-- Healthcheck: https://ferremas-backend-nh5z.onrender.com/api/health
-
-> Render Free puede tardar algunos segundos en despertar el backend.
+Ecommerce fullstack desarrollado para la evaluacion de Integracion de Plataformas. El proyecto simula una tienda FERREMAS con catalogo, carrito, usuarios, compras, panel interno, Webpay Plus, conversion de moneda con Banco Central de Chile, chatbot y sucursales con mapa.
 
 ## Stack
 
 - React + Vite + TypeScript
 - Tailwind CSS + shadcn/ui
-- Node.js 22 + Express
-- PostgreSQL/Supabase en produccion
-- SQLite como fallback local
+- Node.js + Express
+- PostgreSQL/Supabase y SQLite como respaldo local
 - Transbank Webpay Plus
-- Banco Central de Chile API BDE
-- Traduccion ES/EN/PT con LibreTranslate y fallback gratuito
+- API BDE del Banco Central de Chile
+- LibreTranslate/MyMemory para traduccion
 - Vitest
-- Deploy en Vercel + Render
 
 ## Funcionalidades
 
 - Catalogo con busqueda, filtros, stock y detalle de producto.
-- Registro, login, perfil, cambio y recuperacion simulada de contrasena.
-- Carrito y checkout con retiro en tienda o despacho.
-- Pago con Webpay Plus y pedido por transferencia bancaria.
-- Conversion referencial USD/BRL/GBP a CLP mediante Banco Central.
-- Traduccion de interfaz y textos dinamicos.
-- Chatbot mediante `/api/chat`.
-- Historial de compras para clientes.
-- Panel interno protegido para administracion de pedidos.
-- Sucursales con pagina de detalle y Google Maps.
+- Registro, inicio de sesion, perfil, seguridad e historial de compras.
+- Carrito con retiro en tienda o despacho a domicilio.
+- Pago mediante Webpay Plus o transferencia bancaria.
+- Conversion referencial de moneda extranjera a CLP usando Banco Central.
+- Selector de idioma para espanol, ingles y portugues.
+- Chatbot conectado al backend mediante `/api/chat`.
+- Panel interno protegido para revisar pedidos y estados.
+- Sucursales con pagina de detalle y mapa interactivo.
 
-## Instalacion local
+## Ejecucion
 
 Requisitos: Node.js 22+ y npm.
 
@@ -45,39 +34,7 @@ npm install
 npm run dev:all
 ```
 
-URLs locales:
-
-- Frontend: http://localhost:8080
-- Backend: http://localhost:3001
-
-## Variables de entorno
-
-Usar `.env.example` como base. Variables principales:
-
-```env
-VITE_API_URL=http://localhost:3001
-FRONTEND_URL=http://localhost:8080
-BACKEND_URL=http://localhost:3001
-PORT=3001
-ALLOWED_ORIGINS=http://localhost:8080
-
-DATABASE_URL=
-
-TRANSBANK_ENV=integration
-TRANSBANK_COMMERCE_CODE=
-TRANSBANK_API_KEY=
-
-BCCH_USER=
-BCCH_PASS=
-
-LIBRETRANSLATE_URL=https://libretranslate.com
-LIBRETRANSLATE_API_KEY=
-
-ADMIN_USER=
-ADMIN_PASS=
-```
-
-Si `DATABASE_URL` esta vacio, se usa SQLite local. En produccion se usa PostgreSQL/Supabase.
+Si no existe conexion PostgreSQL configurada, el backend usa SQLite para facilitar pruebas locales.
 
 ## Scripts
 
@@ -86,51 +43,67 @@ npm run dev          # frontend
 npm run dev:server   # backend
 npm run dev:all      # frontend + backend
 npm run build        # build de produccion
-npm run test         # pruebas
-npm run lint         # lint
+npm run test         # pruebas automatizadas
+npm run lint         # revision de codigo
 npm run db:reset     # reinicia SQLite local
 ```
 
-## Despliegue
+## Rutas Web
 
-Vercel necesita:
-
-```env
-VITE_API_URL=https://ferremas-backend-nh5z.onrender.com
-```
-
-Render necesita:
-
-```env
-FRONTEND_URL=https://ferremas-ecru.vercel.app
-BACKEND_URL=https://ferremas-backend-nh5z.onrender.com
-ALLOWED_ORIGINS=https://ferremas-ecru.vercel.app
-DATABASE_URL=postgresql://...
-TRANSBANK_ENV=integration
-BCCH_USER=
-BCCH_PASS=
-LIBRETRANSLATE_URL=https://libretranslate.com
-LIBRETRANSLATE_API_KEY=
-ADMIN_USER=
-ADMIN_PASS=
-```
-
-Comando de inicio en Render:
-
-```bash
-npm start
-```
-
-## Rutas principales
-
-- `/catalogo`: catalogo.
+- `/`: inicio.
+- `/catalogo`: listado de productos.
 - `/producto/:id`: detalle de producto.
-- `/carrito`: checkout.
-- `/perfil`: datos e historial del cliente.
-- `/sucursales`: listado de sucursales.
-- `/sucursales/:slug`: detalle con mapa.
+- `/carrito`: carrito y checkout.
+- `/perfil`: datos del cliente e historial de compras.
+- `/sucursales`: listado de tiendas.
+- `/sucursales/:slug`: detalle de sucursal con mapa.
 - `/admin`: acceso interno.
-- `/panel`: gestion administrativa.
+- `/panel`: administracion de pedidos.
+
+## API Principal
+
+- `GET /api/health`: verifica estado del backend.
+- `GET /api/products`: lista productos con precio, stock y fecha.
+- `POST /api/auth/register`: registra clientes.
+- `POST /api/auth/login`: inicia sesion.
+- `GET /api/me`: obtiene datos del usuario autenticado.
+- `PUT /api/me`: actualiza datos del perfil.
+- `POST /api/orders/transfer`: crea pedido por transferencia.
+- `POST /api/webpay/create`: inicia pago Webpay Plus.
+- `POST /api/webpay/commit`: confirma retorno de Transbank.
+- `GET /api/exchange/rate`: consulta tasa del Banco Central.
+- `GET /api/exchange/convert`: convierte moneda extranjera a CLP.
+- `POST /api/chat`: responde consultas del asistente virtual.
+- `POST /api/translate`: traduce textos de la interfaz.
+
+## Pruebas en Postman
+
+Ejemplo para catalogo:
+
+```http
+GET /api/products
+```
+
+Respuesta esperada:
+
+```json
+{
+  "products": [
+    {
+      "id": "p1",
+      "sku": "FM-001",
+      "name": "Taladro Percutor Inalambrico 18V",
+      "brand": "Bosch",
+      "category": "Herramientas",
+      "price": 89990,
+      "stock": 23,
+      "imageKey": "product-drill.jpg",
+      "description": "Taladro percutor profesional...",
+      "date": "04-06-2026 15:29"
+    }
+  ]
+}
+```
 
 ## Verificacion
 
@@ -140,10 +113,10 @@ npm run test
 npm run lint
 ```
 
-El lint puede mostrar advertencias heredadas de Fast Refresh, pero no errores.
+El lint puede mostrar advertencias heredadas de Fast Refresh, pero no errores criticos.
 
 ## Seguridad
 
-- No subir `.env`.
-- No publicar claves de Transbank, Banco Central ni servicios externos.
-- Configurar `ADMIN_USER` y `ADMIN_PASS` solo como variables de entorno.
+- No subir archivos `.env`.
+- No publicar credenciales de Transbank, Banco Central, Supabase ni servicios externos.
+- Mantener las credenciales administrativas solo como variables privadas del servidor.
