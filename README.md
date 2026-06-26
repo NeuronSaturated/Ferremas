@@ -107,7 +107,9 @@ npm run db:reset     # reinicia la base SQLite local
 - `/`: pagina de inicio.
 - `/catalogo`: listado de productos.
 - `/producto/:id`: detalle de producto.
+- `/auth`: registro, inicio de sesion y recuperacion simulada de contrasena.
 - `/carrito`: carrito y proceso de compra.
+- `/checkout/resultado`: resultado de pago Webpay.
 - `/perfil`: datos del cliente e historial de compras.
 - `/sucursales`: listado de sucursales.
 - `/sucursales/:slug`: detalle de sucursal con mapa.
@@ -123,6 +125,7 @@ npm run db:reset     # reinicia la base SQLite local
 - `POST /api/auth/signup`: registra un cliente.
 - `POST /api/auth/signin`: inicia sesion.
 - `GET /api/auth/me`: obtiene el usuario autenticado.
+- `POST /api/auth/signout`: cierra la sesion del cliente.
 - `PATCH /api/auth/profile`: actualiza datos del perfil.
 - `PATCH /api/auth/password`: cambia la contrasena.
 - `POST /api/auth/recover`: simula recuperacion de contrasena.
@@ -134,6 +137,7 @@ npm run db:reset     # reinicia la base SQLite local
 - `POST /api/chat`: responde consultas del asistente virtual.
 - `POST /api/translate`: traduce textos de la interfaz.
 - `POST /api/admin/login`: inicia sesion administrativa.
+- `POST /api/admin/logout`: cierra la sesion administrativa.
 - `GET /api/admin/orders`: lista pedidos para el panel interno.
 - `PATCH /api/admin/orders/:id`: actualiza el estado de un pedido.
 
