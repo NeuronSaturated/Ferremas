@@ -33,6 +33,7 @@ const ChatWidget = () => {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
+  const sessionKeyRef = useRef(user?.id ?? "guest");
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       role: "assistant",
@@ -47,6 +48,24 @@ const ChatWidget = () => {
         : prev
     );
   }, [language, t]);
+
+  useEffect(() => {
+    // Aqui se reinicia la conversacion cuando cambia la sesion. Si un invitado
+    // consulta algo y luego inicia sesion, el asistente parte limpio y puede
+    // saludar usando el nombre del cliente autenticado.
+    const sessionKey = user?.id ?? "guest";
+    if (sessionKeyRef.current === sessionKey) return;
+
+    sessionKeyRef.current = sessionKey;
+    setMessages([
+      {
+        role: "assistant",
+        text: t("chatWelcome"),
+      },
+    ]);
+    setInput("");
+    setLoading(false);
+  }, [user?.id, t]);
 
   useEffect(() => {
     if (open) {
