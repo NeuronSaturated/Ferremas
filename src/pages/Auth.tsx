@@ -1,4 +1,4 @@
-import { FormEvent, useState } from "react";
+import { FormEvent, useRef, useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/context/AuthContext";
 import { formatRut, isValidRut, formatPhoneLocal, cleanPhone } from "@/lib/format";
-import { UserPlus, LogIn, Wrench } from "lucide-react";
+import { UserPlus, LogIn, Wrench, Eye, EyeOff } from "lucide-react";
 import { toast } from "sonner";
 
 const Auth = () => {
@@ -19,18 +19,21 @@ const Auth = () => {
 
   const [submitting, setSubmitting] = useState(false);
   const [loginEmail, setLoginEmail] = useState("");
-  const [loginPass, setLoginPass] = useState("");
+  const loginPassRef = useRef<HTMLInputElement>(null);
+  const passwordRef = useRef<HTMLInputElement>(null);
+  const [showLoginPass, setShowLoginPass] = useState(false);
   const [recoverMode, setRecoverMode] = useState(false);
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [showPass, setShowPass] = useState(false);
   const [rut, setRut] = useState("");
   const [phone, setPhone] = useState("");
 
   const onLogin = async (e: FormEvent) => {
     // En esta parte se autentica al cliente y luego vuelve a la ruta solicitada.
     e.preventDefault();
+    const loginPass = loginPassRef.current?.value ?? "";
     setSubmitting(true);
     try {
       if (await signIn(loginEmail, loginPass)) {
@@ -52,6 +55,7 @@ const Auth = () => {
       toast.error("Telefono debe tener 8 digitos");
       return;
     }
+    const password = passwordRef.current?.value ?? "";
     if (password.length < 6) {
       toast.error("La contraseña debe tener al menos 6 caracteres");
       return;
@@ -122,13 +126,21 @@ const Auth = () => {
                 <div className="relative">
                   <Input
                     id="lpass"
-                    type="password"
+                    ref={loginPassRef}
+                    type={showLoginPass ? "text" : "password"}
                     required
-                    value={loginPass}
-                    onChange={(e) => setLoginPass(e.target.value)}
                     placeholder="••••••••"
                     autoComplete="current-password"
+                    className="pr-10"
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowLoginPass((value) => !value)}
+                    aria-label={showLoginPass ? "Ocultar contrasena" : "Mostrar contrasena"}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-muted-foreground hover:text-foreground"
+                  >
+                    {showLoginPass ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
                 </div>
               </div>
               )}
@@ -204,13 +216,21 @@ const Auth = () => {
                 <div className="relative">
                   <Input
                     id="pass"
-                    type="password"
+                    ref={passwordRef}
+                    type={showPass ? "text" : "password"}
                     required
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
                     placeholder="Minimo 6 caracteres"
                     autoComplete="new-password"
+                    className="pr-10"
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowPass((value) => !value)}
+                    aria-label={showPass ? "Ocultar contrasena" : "Mostrar contrasena"}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-1 text-muted-foreground hover:text-foreground"
+                  >
+                    {showPass ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
                 </div>
               </div>
               <Button type="submit" className="w-full" size="lg" disabled={submitting}>
